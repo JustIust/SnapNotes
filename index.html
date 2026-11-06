@@ -238,6 +238,117 @@
       font-size: 0.78rem;
       color: #e0aa5e;
     }
+
+    /* ==== MODAL DE SALVARE (Ctrl + S) ==== */
+    #save-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    #save-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .save-modal {
+      background: rgba(24, 21, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #save-modal-overlay.active .save-modal {
+      transform: translateY(0) scale(1);
+    }
+    .save-modal h2 {
+      font-family: Georgia, serif;
+      font-size: 1.4rem;
+      color: #f7f3ec;
+    }
+    .save-modal p {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .folder-list {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .folder-option {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      color: #ded8ce;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .folder-option:last-child { border-bottom: none; }
+    .folder-option:hover { background: rgba(224, 170, 94, 0.15); color: #f7f3ec; }
+    
+    .folder-option.focused-item {
+      background: rgba(224, 170, 94, 0.25);
+      color: #f7f3ec;
+      outline: 1px solid rgba(224, 170, 94, 0.5);
+    }
+
+    .new-folder-input-area {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .new-folder-input-area input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #f7f3ec;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .new-folder-input-area input:focus { border-color: rgba(224, 170, 94, 0.4); }
+    
+    .btn-create {
+      padding: 10px 16px;
+      font: 600 0.9rem 'Plus Jakarta Sans', sans-serif;
+      border: 1px solid rgba(224, 170, 94, 0.3);
+      border-radius: 8px;
+      background: rgba(224, 170, 94, 0.15);
+      color: #f7f3ec;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-create:hover { background: rgba(224, 170, 94, 0.25); }
+    .close-modal-btn {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: none; border: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 1.2rem; cursor: pointer;
+    }
+    .close-modal-btn:hover { color: #fff; }
   </style>
 </head>
 <body>
@@ -276,7 +387,7 @@
       <div class="note-body" contenteditable="true" data-placeholder="Type './' for AI agent" spellcheck="true"></div>
 
       <div id="shortcut-popup">
-        <span>💡 Shortcut: Press <span class="kbd-badge">Alt</span> + <span class="kbd-badge">W</span> to open Projectree</span>
+        <span>💡 Save: <span class="kbd-badge">Ctrl</span>+<span class="kbd-badge">S</span> | Switch: <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span></span>
       </div>
     </div>
   </div>
@@ -285,19 +396,40 @@
     <span id="word-count">0 words</span>
   </div>
 
+  <!-- MODAL DE SALVARE -->
+  <div id="save-modal-overlay">
+    <div class="save-modal" style="position: relative;">
+      <button class="close-modal-btn" onclick="closeSaveModal()">✕</button>
+      <h2>Save Note to Projectree</h2>
+      <p>Select an existing folder or create a new one to save your note.</p>
+      
+      <div class="folder-list" id="modal-folder-list">
+        <!-- Folderele vor fi injectate aici din JS -->
+      </div>
+
+      <div style="margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.4);">Or create a new folder:</div>
+      <div class="new-folder-input-area">
+        <input type="text" id="new-folder-input" placeholder="New Folder Name..." autocomplete="off" onkeydown="if(event.key === 'Enter') saveToNewFolder()">
+        <button class="btn-create" onclick="saveToNewFolder()">Create & Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const tabBar = document.getElementById('tab-bar');
     const addTabBtn = document.getElementById('add-tab-btn');
     const noteTitle = document.querySelector('.note-title');
     const noteBody = document.querySelector('.note-body');
     const shortcutPopup = document.getElementById('shortcut-popup');
+    const saveModalOverlay = document.getElementById('save-modal-overlay');
 
     let tabs = [];
     let activeTabId = null;
 
     document.getElementById('note-date').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    function showPopupNotification() {
+    function showPopupNotification(text = null) {
+      if (text) shortcutPopup.innerHTML = `<span>${text}</span>`;
       shortcutPopup.classList.add('show');
       setTimeout(() => { shortcutPopup.classList.remove('show'); }, 4500);
     }
@@ -320,15 +452,20 @@
 
       tabs.forEach(tab => {
         if (tab.fileId) {
-          for (let p of projects) {
-            let file = p.files.find(f => f.id === tab.fileId);
-            if (file) {
-              file.title = tab.title;
-              file.content = tab.body;
-              updatedProjects = true;
-              break;
+          function updateFileInFolders(folderArray) {
+            for (let f of folderArray) {
+              let file = f.files.find(fi => fi.id === tab.fileId);
+              if (file) {
+                file.title = tab.title;
+                file.content = tab.body;
+                updatedProjects = true;
+                return true;
+              }
+              if (f.folders && updateFileInFolders(f.folders)) return true;
             }
+            return false;
           }
+          updateFileInFolders(projects);
         }
       });
 
@@ -429,6 +566,257 @@
     noteTitle.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
     noteBody.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
 
+    noteTitle.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        noteBody.focus();
+        
+        const sel = window.getSelection();
+        const range = document.createRange();
+        if (noteBody.firstChild) {
+          range.setStart(noteBody.firstChild, 0);
+        } else {
+          range.setStart(noteBody, 0);
+        }
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+
+    noteBody.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        const sel = window.getSelection();
+        let isAtTop = false;
+        
+        if (noteBody.textContent.trim() === '') {
+          isAtTop = true;
+        } else if (sel.anchorNode) {
+          const testRange = sel.getRangeAt(0).cloneRange();
+          testRange.collapse(true);
+          const rect = testRange.getBoundingClientRect();
+          const bodyRect = noteBody.getBoundingClientRect();
+          
+          if (rect.top - bodyRect.top < 30) {
+            isAtTop = true;
+          }
+        }
+
+        if (isAtTop) {
+          e.preventDefault();
+          noteTitle.focus();
+          
+          const range = document.createRange();
+          range.selectNodeContents(noteTitle);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    });
+
+    // ==========================================
+    // MODAL DE SALVARE (Ctrl+S) - FIX PENTRU PROJECTREE
+    // ==========================================
+    let modalNavItems = [];
+    let modalFocusedIndex = 0;
+
+    function generateFolderOptionsHtml(folderArray, pathPrefix = '', indicesPath = []) {
+      let html = '';
+      folderArray.forEach((f, i) => {
+        let currentIndices = [...indicesPath, i];
+        let currentPathStr = currentIndices.join('-');
+        
+        html += `<div class="folder-option" onclick="saveToExistingFolder('${currentPathStr}')">📁 ${pathPrefix}${f.name}</div>`;
+        
+        if (f.folders && f.folders.length > 0) {
+          html += generateFolderOptionsHtml(f.folders, pathPrefix + '&nbsp;&nbsp;&nbsp;&nbsp;↳ ', currentIndices);
+        }
+      });
+      return html;
+    }
+
+    function buildModalNavigation() {
+      modalNavItems = Array.from(document.querySelectorAll('.folder-option'));
+      const newFolderInput = document.getElementById('new-folder-input');
+      modalNavItems.push(newFolderInput);
+      modalFocusedIndex = 0;
+      updateModalFocusUI();
+    }
+
+    function updateModalFocusUI() {
+      document.querySelectorAll('.folder-option.focused-item').forEach(el => el.classList.remove('focused-item'));
+      
+      if (modalNavItems.length > 0) {
+        if (modalFocusedIndex < 0) modalFocusedIndex = 0;
+        if (modalFocusedIndex >= modalNavItems.length) modalFocusedIndex = modalNavItems.length - 1;
+        
+        const item = modalNavItems[modalFocusedIndex];
+        
+        if (item.classList && item.classList.contains('folder-option')) {
+          item.classList.add('focused-item');
+          item.scrollIntoView({ block: 'nearest' });
+          document.activeElement.blur();
+        } else if (item.tagName === 'INPUT') {
+          item.focus();
+        }
+      }
+    }
+
+    function openSaveModal() {
+      let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      const listContainer = document.getElementById('modal-folder-list');
+      
+      if (projects.length === 0) {
+        listContainer.innerHTML = `<div style="padding: 16px; color: rgba(255,255,255,0.3); font-style: italic; text-align: center;">No folders yet. Create one below.</div>`;
+      } else {
+        listContainer.innerHTML = generateFolderOptionsHtml(projects);
+      }
+      
+      document.getElementById('new-folder-input').value = '';
+      saveModalOverlay.classList.add('active');
+      buildModalNavigation();
+    }
+
+    function closeSaveModal() {
+      saveModalOverlay.classList.remove('active');
+    }
+
+    function removeFileFromAllFolders(folderArray, targetFileId) {
+      for (let i = 0; i < folderArray.length; i++) {
+        let f = folderArray[i];
+        let fIdx = f.files.findIndex(file => file.id === targetFileId);
+        if (fIdx > -1) {
+          f.files.splice(fIdx, 1);
+          return true;
+        }
+        if (f.folders && f.folders.length > 0) {
+          if (removeFileFromAllFolders(f.folders, targetFileId)) return true;
+        }
+      }
+      return false;
+    }
+
+    function getFolderObjByPath(projectsArray, pathStr) {
+      const indices = pathStr.split('-').map(Number);
+      let current = projectsArray[indices[0]];
+      for (let i = 1; i < indices.length; i++) {
+        current = current.folders[indices[i]];
+      }
+      return current;
+    }
+
+    // [FIXED] Aceasta functie acum primeste direct `projects` ul corect ca sa nu il suprascrie
+    function executeSaveIntoFolder(projects, targetFolderObj) {
+      saveCurrentTabState();
+      const currentTab = tabs.find(t => t.id === activeTabId);
+      if (!currentTab) return;
+
+      if (!currentTab.fileId) {
+        currentTab.fileId = 'file_' + Date.now();
+      } else {
+        removeFileFromAllFolders(projects, currentTab.fileId);
+      }
+
+      let existingFileIndex = targetFolderObj.files.findIndex(f => f.id === currentTab.fileId);
+      
+      if (existingFileIndex > -1) {
+        targetFolderObj.files[existingFileIndex].title = currentTab.title;
+        targetFolderObj.files[existingFileIndex].content = currentTab.body;
+      } else {
+        targetFolderObj.files.push({
+          id: currentTab.fileId,
+          title: currentTab.title,
+          content: currentTab.body
+        });
+      }
+
+      // Salvăm tot sistemul proiectelor cu noile actualizări!
+      localStorage.setItem('snapnote_projects', JSON.stringify(projects));
+      localStorage.setItem('snapnote_tabs', JSON.stringify(tabs));
+      
+      closeSaveModal();
+      showPopupNotification(`✅ Saved successfully to folder!`);
+
+      setTimeout(() => {
+        window.location.href = 'Projectree.html';
+      }, 900);
+    }
+
+    // [FIXED] Acum trimite lista `projects` catre funcția `executeSaveIntoFolder`
+    window.saveToExistingFolder = function(pathStr) {
+      let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      let targetFolder = getFolderObjByPath(projects, pathStr);
+      executeSaveIntoFolder(projects, targetFolder);
+    };
+
+    // [FIXED] Acum adaugă noul folder în structură și trimite structura actualizată
+    window.saveToNewFolder = function() {
+      const input = document.getElementById('new-folder-input');
+      const folderName = input.value.trim();
+      if (!folderName) {
+        input.focus();
+        return;
+      }
+      
+      let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      const newFolder = { name: folderName, files: [], folders: [] };
+      projects.push(newFolder);
+      
+      executeSaveIntoFolder(projects, newFolder);
+    };
+
+    // ==========================================
+    // GLOBAL KEYDOWN LISTENER
+    // ==========================================
+    document.addEventListener('keydown', (e) => {
+      
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's')) {
+        e.preventDefault();
+        openSaveModal();
+        return;
+      }
+      
+      if (saveModalOverlay.classList.contains('active')) {
+        if (e.key === 'Escape') {
+          closeSaveModal();
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          modalFocusedIndex++;
+          updateModalFocusUI();
+          return;
+        }
+        
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          modalFocusedIndex--;
+          updateModalFocusUI();
+          return;
+        }
+        
+        if (e.key === 'Enter') {
+          const item = modalNavItems[modalFocusedIndex];
+          if (item && item.classList && item.classList.contains('folder-option')) {
+            e.preventDefault();
+            item.click();
+          }
+          return;
+        }
+        return;
+      }
+
+      // Universal Toggle: Alt + W
+      if (e.altKey && (e.code === 'KeyW' || e.key.toLowerCase() === 'w' || e.key === '∑')) {
+        e.preventDefault();
+        saveAllTabsToStorage();
+        window.location.href = 'Projectree.html';
+      }
+
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       const openFileId = localStorage.getItem('snapnote_open_file_id');
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
@@ -436,24 +824,36 @@
 
       if (openFileId) {
         localStorage.removeItem('snapnote_open_file_id');
-        for (let p of projects) {
-          let file = p.files.find(f => f.id === openFileId);
-          if (file) {
-            let existing = tabs.find(t => t.fileId === file.id);
-            if (!existing) {
-              existing = { id: Date.now().toString(), fileId: file.id, title: file.title || 'Untitled', body: file.content || '' };
-              tabs.push(existing);
-            } else {
-              existing.body = file.content || '';
-              existing.title = file.title || 'Untitled';
+        
+        function findFileInProjects(folderArray) {
+          for (let f of folderArray) {
+            let found = f.files.find(fi => fi.id === openFileId);
+            if (found) return found;
+            if (f.folders && f.folders.length > 0) {
+              let deepFound = findFileInProjects(f.folders);
+              if (deepFound) return deepFound;
             }
-            activeTabId = existing.id;
-            buildTabUI();
-            switchTab(activeTabId);
-            saveAllTabsToStorage();
-            showPopupNotification();
-            return;
           }
+          return null;
+        }
+
+        let file = findFileInProjects(projects);
+
+        if (file) {
+          let existing = tabs.find(t => t.fileId === file.id);
+          if (!existing) {
+            existing = { id: Date.now().toString(), fileId: file.id, title: file.title || 'Untitled', body: file.content || '' };
+            tabs.push(existing);
+          } else {
+            existing.body = file.content || '';
+            existing.title = file.title || 'Untitled';
+          }
+          activeTabId = existing.id;
+          buildTabUI();
+          switchTab(activeTabId);
+          saveAllTabsToStorage();
+          showPopupNotification('💡 Edit mode active');
+          return;
         }
       }
 
@@ -468,16 +868,6 @@
       showPopupNotification();
     });
 
-    // Shortcut: Alt + Q -> Save and navigate to Projectree.html
-    window.addEventListener('keydown', (e) => {
-      if (e.altKey && e.code === 'KeyQ') {
-        e.preventDefault();
-        saveAllTabsToStorage();
-        window.location.href = 'Projectree.html';
-      }
-    });
-
-    renderFolders();
   </script>
 </body>
 </html>

@@ -242,8 +242,7 @@
 
     .notes-tree-list {
       display: none;
-      background: rgba(0, 0, 0, 0.2);
-      padding-left: 20px;
+      background: rgba(0, 0, 0, 0.1);
       border-top: 1px solid rgba(255, 255, 255, 0.03);
     }
     .notes-tree-list.expanded { display: block; }
@@ -301,6 +300,12 @@
       font-style: italic;
     }
 
+    .focused-item {
+      background: rgba(224, 170, 94, 0.15) !important;
+      outline: 1px solid rgba(224, 170, 94, 0.4);
+      border-radius: 6px;
+    }
+
     #shortcut-popup {
       position: absolute;
       bottom: 24px;
@@ -335,6 +340,58 @@
       font-size: 0.78rem;
       color: #e0aa5e;
     }
+
+    /* ==== CUSTOM MODALS (Prompt & Confirm) ==== */
+    .custom-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .custom-modal-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .custom-modal-box {
+      background: rgba(24, 21, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;
+      width: 90%; max-width: 420px; padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .custom-modal-overlay.active .custom-modal-box { transform: translateY(0) scale(1); }
+    
+    .custom-modal-box h2 { font-family: Georgia, serif; font-size: 1.4rem; color: #f7f3ec; margin-bottom: 4px; }
+    .custom-modal-box p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.5); line-height: 1.5; margin-bottom: 8px; }
+    
+    .custom-modal-box input {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px; padding: 12px 14px; color: #f7f3ec;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; outline: none; width: 100%;
+    }
+    .custom-modal-box input:focus { border-color: rgba(224, 170, 94, 0.4); }
+    
+    .custom-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+    
+    .btn-cancel {
+      padding: 10px 16px; font: 600 0.9rem 'Plus Jakarta Sans', sans-serif;
+      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+      background: transparent; color: rgba(255, 255, 255, 0.6); cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-cancel:hover { background: rgba(255, 255, 255, 0.05); color: #f7f3ec; }
+    
+    .btn-confirm-action {
+      padding: 10px 16px; font: 600 0.9rem 'Plus Jakarta Sans', sans-serif;
+      border: 1px solid rgba(224, 170, 94, 0.3); border-radius: 8px;
+      background: rgba(224, 170, 94, 0.15); color: #f7f3ec; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-confirm-action:hover { background: rgba(224, 170, 94, 0.25); }
+    
+    .btn-danger {
+      background: rgba(229, 115, 115, 0.15); border: 1px solid rgba(229, 115, 115, 0.3); color: #e57373;
+    }
+    .btn-danger:hover { background: rgba(229, 115, 115, 0.25); }
   </style>
 </head>
 <body>
@@ -368,7 +425,7 @@
           <p class="dashboard-subtitle">Organize your thought structure and manage notes.</p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button class="btn" id="new-folder-btn">+ New Folder</button>
+          <button class="btn" id="new-folder-btn" style="outline: none;">+ New Folder</button>
         </div>
       </div>
 
@@ -388,16 +445,111 @@
       </div>
 
       <div id="shortcut-popup">
-        <span>💡 Shortcut: Press <span class="kbd-badge">Alt</span> + <span class="kbd-badge">E</span> to return to Index</span>
+        <span>💡 <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span> to Editor | Use <span class="kbd-badge">⬆</span> <span class="kbd-badge">⬇</span> <span class="kbd-badge">⬅</span> <span class="kbd-badge">➡</span> to navigate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM PROMPT MODAL -->
+  <div class="custom-modal-overlay" id="custom-prompt-overlay">
+    <div class="custom-modal-box">
+      <h2 id="custom-prompt-title">Enter details</h2>
+      <input type="text" id="custom-prompt-input" autocomplete="off" />
+      <div class="custom-modal-actions">
+        <button class="btn-cancel" onclick="closeCustomPrompt(null)">Cancel</button>
+        <button class="btn-confirm-action" onclick="submitCustomPrompt()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CONFIRM MODAL (For deletions) -->
+  <div class="custom-modal-overlay" id="custom-confirm-overlay">
+    <div class="custom-modal-box">
+      <h2 id="custom-confirm-title">Confirm Action</h2>
+      <p id="custom-confirm-message">Are you sure?</p>
+      <div class="custom-modal-actions">
+        <button class="btn-cancel" onclick="closeCustomConfirm(false)">Cancel</button>
+        <button class="btn-confirm-action btn-danger" onclick="closeCustomConfirm(true)">Delete</button>
       </div>
     </div>
   </div>
 
   <script>
-    let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+    // ==========================================
+    // CUSTOM MODALS LOGIC
+    // ==========================================
+    let promptResolver = null;
+    let confirmResolver = null;
+
+    function openCustomPrompt(title, placeholder) {
+      return new Promise((resolve) => {
+        promptResolver = resolve;
+        document.getElementById('custom-prompt-title').textContent = title;
+        const input = document.getElementById('custom-prompt-input');
+        input.placeholder = placeholder;
+        input.value = '';
+        document.getElementById('custom-prompt-overlay').classList.add('active');
+        input.focus();
+      });
+    }
+
+    function closeCustomPrompt(value) {
+      document.getElementById('custom-prompt-overlay').classList.remove('active');
+      if (promptResolver) {
+        promptResolver(value);
+        promptResolver = null;
+      }
+    }
+
+    function submitCustomPrompt() {
+      const input = document.getElementById('custom-prompt-input');
+      closeCustomPrompt(input.value);
+    }
+
+    document.getElementById('custom-prompt-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitCustomPrompt();
+      if (e.key === 'Escape') closeCustomPrompt(null);
+    });
+
+    function openCustomConfirm(title, message) {
+      return new Promise((resolve) => {
+        confirmResolver = resolve;
+        document.getElementById('custom-confirm-title').textContent = title;
+        document.getElementById('custom-confirm-message').textContent = message;
+        document.getElementById('custom-confirm-overlay').classList.add('active');
+      });
+    }
+
+    function closeCustomConfirm(result) {
+      document.getElementById('custom-confirm-overlay').classList.remove('active');
+      if (confirmResolver) {
+        confirmResolver(result);
+        confirmResolver = null;
+      }
+    }
+
+    // ==========================================
+    // PROJECT LOGIC
+    // ==========================================
+    function initProjects(projs) {
+        if (!projs) return [];
+        projs.forEach(p => {
+            if (!p.folders) p.folders = [];
+            if (!p.files) p.files = [];
+            initProjects(p.folders);
+        });
+        return projs;
+    }
+
+    let projects = initProjects(JSON.parse(localStorage.getItem('snapnote_projects')) || []);
     const foldersContainer = document.getElementById('folders-container');
     const totalFoldersBadge = document.getElementById('total-folders-badge');
     const shortcutPopup = document.getElementById('shortcut-popup');
+    
+    let navItems = [];
+    let focusedIndex = 0;
+    let focusedActionIndex = 0;
+    let openFolderPaths = new Set();
 
     function showPopupNotification() {
       shortcutPopup.classList.add('show');
@@ -409,119 +561,180 @@
       localStorage.setItem('snapnote_projects', JSON.stringify(projects));
     }
 
-    function renderFolders() {
-      projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
-      foldersContainer.innerHTML = '';
-      totalFoldersBadge.textContent = `${projects.length} ${projects.length === 1 ? 'Folder' : 'Folders'}`;
+    function generateFolderHTML(folder, pathArr, level = 0) {
+      const pathStr = pathArr.join('-');
+      const groupMargin = level > 0 ? 'margin-left: 20px; border-left: 1px solid rgba(255,255,255,0.08); border-bottom: none;' : '';
+      const childMargin = level >= 0 ? 'margin-left: 20px; border-left: 1px solid rgba(255,255,255,0.08);' : '';
 
-      if (projects.length === 0) {
-        foldersContainer.innerHTML = `
-          <div class="empty-state-msg">
-            No folders created yet. Click "+ New Folder" to organize your notes.
-          </div>`;
-        return;
+      const isOpen = openFolderPaths.has(pathStr);
+      const rowClass = isOpen ? 'folder-row open' : 'folder-row';
+      const listClass = isOpen ? 'notes-tree-list expanded' : 'notes-tree-list';
+
+      let childrenHtml = '';
+      
+      folder.files.forEach((file, i) => {
+        childrenHtml += `
+          <div class="note-row" data-fileid="${file.id}" style="${childMargin}">
+            <div class="note-name-col" onclick="openFile('${file.id}')">
+              <svg class="note-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4 1.75C4 .784 4.784 0 5.75 0h4.5c.966 0 1.75.784 1.75 1.75v12.5A1.75 1.75 0 0 1 10.25 16h-4.5A1.75 1.75 0 0 1 4 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h4.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Z"/>
+              </svg>
+              <span class="note-title-text">${file.title || 'Untitled Note'}</span>
+            </div>
+            <div>
+              <button class="action-btn" onclick="event.stopPropagation(); deleteNote('${pathStr}', ${i})" title="Delete note">✕</button>
+            </div>
+          </div>
+        `;
+      });
+
+      folder.folders.forEach((subFolder, i) => {
+        childrenHtml += generateFolderHTML(subFolder, [...pathArr, i], level + 1);
+      });
+
+      if (folder.folders.length === 0 && folder.files.length === 0) {
+        childrenHtml += `<div class="note-row empty-folder-msg" style="${childMargin} color: rgba(255,255,255,0.3); font-style: italic;">No items here.</div>`;
       }
 
-      projects.forEach((proj, pIdx) => {
-        const folderGroup = document.createElement('div');
-        folderGroup.className = 'folder-group';
-
-        const files = proj.files || [];
-        
-        let notesListHtml = '';
-        if (files.length === 0) {
-          notesListHtml = `<div class="note-row" style="color: rgba(255,255,255,0.3); font-style: italic;">No notes in this folder.</div>`;
-        } else {
-          files.forEach((file, fIdx) => {
-            notesListHtml += `
-              <div class="note-row">
-                <div class="note-name-col" onclick="openFile('${file.id}')">
-                  <svg class="note-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M4 1.75C4 .784 4.784 0 5.75 0h4.5c.966 0 1.75.784 1.75 1.75v12.5A1.75 1.75 0 0 1 10.25 16h-4.5A1.75 1.75 0 0 1 4 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h4.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Z"/>
-                  </svg>
-                  <span class="note-title-text">${file.title || 'Untitled Note'}</span>
-                </div>
-                <div>
-                  <button class="action-btn" onclick="event.stopPropagation(); deleteNote(${pIdx}, ${fIdx})" title="Delete note">✕</button>
-                </div>
-              </div>
-            `;
-          });
-        }
-
-        folderGroup.innerHTML = `
-          <div class="folder-row" id="folder-row-${pIdx}" onclick="toggleFolder(${pIdx})">
+      return `
+        <div class="folder-group" style="${groupMargin}">
+          <div class="${rowClass}" id="folder-row-${pathStr}" data-path="${pathStr}" onclick="toggleFolder('${pathStr}')">
             <div class="folder-title-col">
               <svg class="folder-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06z"/>
               </svg>
-              <span>📁 ${proj.name}</span>
-              <span class="note-count-tag">${files.length} ${files.length === 1 ? 'note' : 'notes'}</span>
+              <span>📁 ${folder.name}</span>
+              <span class="note-count-tag">${folder.folders.length + folder.files.length} items</span>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;" onclick="event.stopPropagation();">
-              <button class="btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="addNoteToFolder(${pIdx})">+ Add Note</button>
-              <button class="action-btn" onclick="deleteFolder(${pIdx})" title="Delete folder">Delete</button>
+            <div style="display: flex; gap: 6px; align-items: center;" onclick="event.stopPropagation();">
+              <button class="btn action-node" data-actionindex="1" style="padding: 4px 8px; font-size: 0.7rem;" onclick="addNoteToFolder('${pathStr}')">+ Note</button>
+              <button class="btn action-node" data-actionindex="2" style="padding: 4px 8px; font-size: 0.7rem;" onclick="addFolderToFolder('${pathStr}')">+ Folder</button>
+              <button class="action-btn action-node" data-actionindex="3" style="padding: 4px 8px; font-size: 0.7rem;" onclick="deleteFolder('${pathStr}')">Delete</button>
             </div>
           </div>
-          <div class="notes-tree-list" id="notes-tree-${pIdx}">
-            ${notesListHtml}
+          <div class="${listClass}" id="notes-tree-${pathStr}">
+            ${childrenHtml}
           </div>
-        `;
-
-        foldersContainer.appendChild(folderGroup);
-      });
+        </div>
+      `;
     }
 
-    window.toggleFolder = function(pIdx) {
-      const folderRow = document.getElementById(`folder-row-${pIdx}`);
-      const notesList = document.getElementById(`notes-tree-${pIdx}`);
+    function renderFolders() {
+      projects = initProjects(JSON.parse(localStorage.getItem('snapnote_projects')) || []);
+      
+      foldersContainer.innerHTML = '';
+      totalFoldersBadge.textContent = `${projects.length} Folders`;
+
+      if (projects.length === 0) {
+        foldersContainer.innerHTML = `
+          <div class="empty-state-msg">
+            No folders created yet. Click "+ New Folder" to start.
+          </div>`;
+        buildNavigation();
+        return;
+      }
+
+      let completeHtml = '';
+      projects.forEach((proj, idx) => {
+        completeHtml += generateFolderHTML(proj, [idx], 0);
+      });
+      foldersContainer.innerHTML = completeHtml;
+      
+      buildNavigation();
+    }
+
+    function getFolderByPath(pathStr) {
+      const indices = pathStr.split('-').map(Number);
+      let current = projects[indices[0]];
+      for (let i = 1; i < indices.length; i++) {
+        current = current.folders[indices[i]];
+      }
+      return current;
+    }
+
+    function getParentByPath(pathStr) {
+      const indices = pathStr.split('-').map(Number);
+      if (indices.length === 1) return { arr: projects, index: indices[0] };
+      
+      let current = projects[indices[0]];
+      for (let i = 1; i < indices.length - 1; i++) {
+        current = current.folders[indices[i]];
+      }
+      return { arr: current.folders, index: indices[indices.length - 1] };
+    }
+
+    window.toggleFolder = function(pathStr) {
+      const folderRow = document.getElementById(`folder-row-${pathStr}`);
+      const notesList = document.getElementById(`notes-tree-${pathStr}`);
+      
       folderRow.classList.toggle('open');
       notesList.classList.toggle('expanded');
+      
+      if (folderRow.classList.contains('open')) {
+        openFolderPaths.add(pathStr);
+      } else {
+        openFolderPaths.delete(pathStr);
+      }
+      
+      buildNavigation();
     };
 
-    document.getElementById('new-folder-btn').addEventListener('click', () => {
-      const name = prompt("Enter folder name:");
+    // Replaced standard 'prompt' with custom await modal
+    document.getElementById('new-folder-btn').addEventListener('click', async () => {
+      const name = await openCustomPrompt("Create Main Folder", "Folder name...");
       if (name && name.trim()) {
-        projects.push({ name: name.trim(), files: [] });
+        projects.push({ name: name.trim(), files: [], folders: [] });
         saveProjects();
         renderFolders();
       }
     });
 
-    window.addNoteToFolder = function(pIdx) {
-      const name = prompt("Enter note title:");
+    window.addFolderToFolder = async function(pathStr) {
+      const name = await openCustomPrompt("Create Subfolder", "Folder name...");
+      if (name && name.trim()) {
+        const folder = getFolderByPath(pathStr);
+        folder.folders.push({ name: name.trim(), files: [], folders: [] });
+        saveProjects();
+        openFolderPaths.add(pathStr);
+        renderFolders();
+      }
+    };
+
+    window.addNoteToFolder = async function(pathStr) {
+      const name = await openCustomPrompt("Create New Note", "Note title...");
       if (name && name.trim()) {
         const newFile = { id: 'file_' + Date.now(), title: name.trim(), content: '' };
-        projects[pIdx].files.push(newFile);
+        const folder = getFolderByPath(pathStr);
+        folder.files.push(newFile);
         saveProjects();
-        renderFolders();
-        
-        const folderRow = document.getElementById(`folder-row-${pIdx}`);
-        const notesList = document.getElementById(`notes-tree-${pIdx}`);
-        if (folderRow && notesList) {
-          folderRow.classList.add('open');
-          notesList.classList.add('expanded');
-        }
-      }
-    };
-
-    window.deleteFolder = function(pIdx) {
-      if (confirm(`Delete folder "${projects[pIdx].name}" and all its notes?`)) {
-        projects.splice(pIdx, 1);
-        saveProjects();
+        openFolderPaths.add(pathStr);
         renderFolders();
       }
     };
 
-    window.deleteNote = function(pIdx, fIdx) {
-      if (confirm("Delete this note?")) {
-        const targetFile = projects[pIdx].files[fIdx];
+    // Replaced standard 'confirm' with custom await modal
+    window.deleteFolder = async function(pathStr) {
+      const parentInfo = getParentByPath(pathStr);
+      const folderToDelete = parentInfo.arr[parentInfo.index];
+      const confirmed = await openCustomConfirm("Delete Folder", `Are you sure you want to delete "${folderToDelete.name}" and all its contents?`);
+      if (confirmed) {
+        parentInfo.arr.splice(parentInfo.index, 1);
+        saveProjects();
+        renderFolders();
+      }
+    };
+
+    window.deleteNote = async function(pathStr, fIdx) {
+      const confirmed = await openCustomConfirm("Delete Note", "Are you sure you want to delete this note?");
+      if (confirmed) {
+        const folder = getFolderByPath(pathStr);
+        const targetFile = folder.files[fIdx];
         
         let savedTabs = JSON.parse(localStorage.getItem('snapnote_tabs')) || [];
         savedTabs = savedTabs.filter(t => t.fileId !== targetFile.id);
         localStorage.setItem('snapnote_tabs', JSON.stringify(savedTabs));
 
-        projects[pIdx].files.splice(fIdx, 1);
+        folder.files.splice(fIdx, 1);
         saveProjects();
         renderFolders();
       }
@@ -532,12 +745,120 @@
       window.location.href = 'index.html';
     };
 
-    // Shortcut: Alt + W -> Save and navigate to Projectree.html
-    window.addEventListener('keydown', (e) => {
-      if (e.altKey && e.code === 'KeyW') {
+    function walkDOMForNav(container) {
+      const children = Array.from(container.children);
+      for (let child of children) {
+         if (child.classList.contains('folder-group')) {
+            const row = child.querySelector(':scope > .folder-row');
+            if (row) {
+                navItems.push({ type: 'folder', path: row.dataset.path, el: row });
+                const list = child.querySelector(':scope > .notes-tree-list');
+                if (list && list.classList.contains('expanded')) {
+                   walkDOMForNav(list);
+                }
+            }
+         } else if (child.classList.contains('note-row')) {
+            if (!child.classList.contains('empty-folder-msg')) {
+                navItems.push({ type: 'note', fileId: child.dataset.fileid, el: child });
+            }
+         }
+      }
+    }
+
+    function buildNavigation() {
+      navItems = [];
+      focusedActionIndex = 0;
+      
+      const newFolderBtn = document.getElementById('new-folder-btn');
+      navItems.push({ type: 'button', el: newFolderBtn });
+
+      walkDOMForNav(foldersContainer);
+      updateFocusUI();
+    }
+
+    function updateFocusUI() {
+      document.querySelectorAll('.focused-item').forEach(el => el.classList.remove('focused-item'));
+      
+      if (navItems.length > 0) {
+        if (focusedIndex < 0) focusedIndex = 0;
+        if (focusedIndex >= navItems.length) focusedIndex = navItems.length - 1;
+        
+        const item = navItems[focusedIndex];
+        
+        if (item.type === 'folder' && focusedActionIndex > 0) {
+          const actionBtn = item.el.querySelector(`.action-node[data-actionindex="${focusedActionIndex}"]`);
+          if (actionBtn) {
+            actionBtn.classList.add('focused-item');
+            actionBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        } else {
+          item.el.classList.add('focused-item');
+          item.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      // Daca o fereastra modala custom e deschisa, oprim scurtaturile globale
+      if (document.getElementById('custom-prompt-overlay').classList.contains('active') ||
+          document.getElementById('custom-confirm-overlay').classList.contains('active')) {
+        return;
+      }
+
+      // Comutare rapidă Alt + W înapoi în Editor
+      if (e.altKey && (e.code === 'KeyW' || e.key.toLowerCase() === 'w' || e.key === '∑')) {
         e.preventDefault();
-        saveAllTabsToStorage();
-        window.location.href = 'Projectree.html';
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (navItems.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        focusedIndex++;
+        focusedActionIndex = 0;
+        updateFocusUI();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusedIndex--;
+        focusedActionIndex = 0; 
+        updateFocusUI();
+      } else if (e.key === 'ArrowRight') {
+        const item = navItems[focusedIndex];
+        if (item.type === 'folder') {
+          e.preventDefault();
+          if (focusedActionIndex < 3) {
+            focusedActionIndex++;
+            updateFocusUI();
+          }
+        }
+      } else if (e.key === 'ArrowLeft') {
+        const item = navItems[focusedIndex];
+        if (item.type === 'folder') {
+          e.preventDefault();
+          if (focusedActionIndex > 0) {
+            focusedActionIndex--;
+            updateFocusUI();
+          }
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const item = navItems[focusedIndex];
+        
+        if (item.type === 'button') {
+          item.el.click();
+        } else if (item.type === 'folder') {
+          if (focusedActionIndex > 0) {
+            const actionBtn = item.el.querySelector(`.action-node[data-actionindex="${focusedActionIndex}"]`);
+            if (actionBtn) actionBtn.click();
+          } else {
+            toggleFolder(item.path);
+          }
+        } else if (item.type === 'note') {
+          openFile(item.fileId);
+        }
       }
     });
 

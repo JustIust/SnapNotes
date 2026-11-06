@@ -108,7 +108,9 @@
       width: 100%;
       transition: all 0.2s ease;
     }
-    .btn:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); border-color: rgba(224, 170, 94, 0.4); }
+    
+    /* MODIFICAT: am adăugat .btn:focus pentru navigarea cu tastatura */
+    .btn:hover, .btn:focus { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); border-color: rgba(224, 170, 94, 0.4); outline: none; }
     .btn.primary { background: rgba(224, 170, 94, 0.15); border-color: rgba(224, 170, 94, 0.3); color: #f7f3ec; }
   </style>
 </head>
@@ -132,10 +134,33 @@
     </div>
     <h1>SnapNote</h1>
     <p>Minimalist atmosphere for your thoughts.</p>
+    
+    <!-- MODIFICAT: am adăugat ID-uri la butoane -->
     <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-      <button class="btn primary" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">Open Editor</button>
-      <button class="btn" onclick="location.href='Projectree.html'">Open Projectree</button>
+      <button class="btn primary" id="btn-editor" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">Open Editor</button>
+      <button class="btn" id="btn-tree" onclick="location.href='Projectree.html'">Open Projectree</button>
     </div>
   </div>
+
+  <!-- NOU: Script pentru navigarea cu tastatura -->
+  <script>
+    const btnEditor = document.getElementById('btn-editor');
+    const btnTree = document.getElementById('btn-tree');
+    
+    // Selectăm automat primul buton când se încarcă pagina
+    window.addEventListener('DOMContentLoaded', () => {
+      btnEditor.focus(); 
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        btnTree.focus();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        btnEditor.focus();
+      }
+    });
+  </script>
 </body>
 </html>
