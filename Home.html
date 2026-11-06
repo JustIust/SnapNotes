@@ -164,8 +164,7 @@
     <p>Write your thoughts.</p>
     
     <div class="buttons-container">
-      <!-- Butonul Editor (cu iconiță nouă de fișier / document) -->
-      <button class="btn" id="btn-editor" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">
+      <button class="btn" id="btn-editor">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
@@ -176,8 +175,7 @@
         Open Editor
       </button>
 
-      <!-- Butonul Projectree (cu iconiță de folder) -->
-      <button class="btn" id="btn-tree" onclick="location.href='Projectree.html'">
+      <button class="btn" id="btn-tree">
         <svg viewBox="0 0 16 16" fill="currentColor">
           <path d="M.5 3l.04 1.5H14v-1A1.5 1.5 0 0 0 12.5 2H7l-1.5-1.5H2A1.5 1.5 0 0 0 .5 2z"/>
           <path d="M15.5 5H.5l1 9A1.5 1.5 0 0 0 3 15h10a1.5 1.5 0 0 0 1.5-1z"/>
@@ -190,13 +188,30 @@
   <script>
     const btnEditor = document.getElementById('btn-editor');
     const btnTree = document.getElementById('btn-tree');
-    
+
+    function goToEditor() {
+      try { localStorage.removeItem('snapnote_open_file_id'); } catch(e) {}
+      window.location.href = 'index.html';
+    }
+
+    function goToTree() {
+      window.location.href = 'Projectree.html';
+    }
+
+    btnEditor.addEventListener('click', goToEditor);
+    btnTree.addEventListener('click', goToTree);
+
     window.addEventListener('DOMContentLoaded', () => {
-      btnEditor.focus(); 
+      setTimeout(() => {
+        btnEditor.focus();
+      }, 100);
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') {
+      if (e.altKey && (e.code === 'KeyW' || e.key.toLowerCase() === 'w')) {
+        e.preventDefault();
+        goToTree();
+      } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         btnTree.focus();
       } else if (e.key === 'ArrowLeft') {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editor - SnapNote</title>
+  <title>Editor - SnapNote (Styled AI Blocks)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -194,6 +194,51 @@
     }
     .note-body:empty:before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.2); }
 
+    .note-body h3, .note-body h4 {
+      color: #f7f3ec;
+      font-family: Georgia, serif;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-size: 1.15rem;
+    }
+    .note-body strong {
+      color: #e0aa5e;
+      font-weight: 600;
+    }
+    .note-body ul, .note-body ol {
+      padding-left: 20px;
+      margin: 6px 0;
+    }
+    .note-body li {
+      margin-bottom: 4px;
+    }
+    .note-body a {
+      color: #e0aa5e;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .note-body a:hover {
+      color: #f7f3ec;
+    }
+
+    .ai-generated-block {
+      margin: 14px 0 14px 24px;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.025);
+      border-left: 3px solid rgba(224, 170, 94, 0.6);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .ai-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(224, 170, 94, 0.75);
+      margin-bottom: 6px;
+    }
+
     .editor-footer {
       position: fixed; bottom: 24px; right: 32px;
       font-size: 0.78rem; color: rgba(255, 255, 255, 0.4);
@@ -239,116 +284,82 @@
       color: #e0aa5e;
     }
 
-    /* ==== MODAL DE SALVARE (Ctrl + S) ==== */
     #save-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
     }
-    #save-modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    #save-modal-overlay.active { opacity: 1; pointer-events: auto; }
+    
     .save-modal {
-      background: rgba(24, 21, 19, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 480px;
-      padding: 24px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      transform: translateY(20px) scale(0.95);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      background: rgba(24, 21, 19, 0.95); border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px; width: 90%; max-width: 480px; padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    #save-modal-overlay.active .save-modal {
-      transform: translateY(0) scale(1);
-    }
-    .save-modal h2 {
-      font-family: Georgia, serif;
-      font-size: 1.4rem;
-      color: #f7f3ec;
-    }
-    .save-modal p {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.5);
-    }
-    .folder-list {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      max-height: 250px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .folder-option {
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      color: #ded8ce;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      transition: background 0.15s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    #save-modal-overlay.active .save-modal { transform: translateY(0) scale(1); }
+    
+    .save-modal h2 { font-family: Georgia, serif; font-size: 1.4rem; color: #f7f3ec; }
+    .save-modal p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }
+    .folder-list { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; }
+    .folder-option { padding: 10px 16px; font-size: 0.9rem; color: #ded8ce; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.15s ease; display: flex; align-items: center; gap: 8px; }
     .folder-option:last-child { border-bottom: none; }
-    .folder-option:hover { background: rgba(224, 170, 94, 0.15); color: #f7f3ec; }
+    .folder-option:hover, .folder-option.focused-item { background: rgba(224, 170, 94, 0.25); color: #f7f3ec; outline: 1px solid rgba(224, 170, 94, 0.5); }
     
-    .folder-option.focused-item {
-      background: rgba(224, 170, 94, 0.25);
-      color: #f7f3ec;
-      outline: 1px solid rgba(224, 170, 94, 0.5);
-    }
-
-    .new-folder-input-area {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .new-folder-input-area input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #f7f3ec;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.9rem;
-      outline: none;
-    }
+    .new-folder-input-area { display: flex; gap: 8px; margin-top: 8px; }
+    .new-folder-input-area input { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px 14px; color: #f7f3ec; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; outline: none; }
     .new-folder-input-area input:focus { border-color: rgba(224, 170, 94, 0.4); }
-    
-    .btn-create {
-      padding: 10px 16px;
-      font: 600 0.9rem 'Plus Jakarta Sans', sans-serif;
-      border: 1px solid rgba(224, 170, 94, 0.3);
-      border-radius: 8px;
-      background: rgba(224, 170, 94, 0.15);
-      color: #f7f3ec;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+    .btn-create { padding: 10px 16px; font: 600 0.9rem 'Plus Jakarta Sans', sans-serif; border: 1px solid rgba(224, 170, 94, 0.3); border-radius: 8px; background: rgba(224, 170, 94, 0.15); color: #f7f3ec; cursor: pointer; transition: all 0.2s ease; }
     .btn-create:hover { background: rgba(224, 170, 94, 0.25); }
-    .close-modal-btn {
-      position: absolute;
-      top: 20px; right: 20px;
-      background: none; border: none;
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 1.2rem; cursor: pointer;
-    }
+    .close-modal-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 1.2rem; cursor: pointer; }
     .close-modal-btn:hover { color: #fff; }
+
+    #ai-prompt-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    #ai-prompt-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .ai-prompt-box {
+      background: rgba(24, 21, 19, 0.95); border: 1px solid rgba(224, 170, 94, 0.3);
+      border-radius: 16px; width: 90%; max-width: 500px; padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 40px rgba(224, 170, 94, 0.1);
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #ai-prompt-overlay.active .ai-prompt-box { transform: translateY(0) scale(1); }
+    
+    .ai-header { display: flex; align-items: center; gap: 10px; color: #e0aa5e; font-family: Georgia, serif; font-size: 1.3rem; }
+    .ai-header svg { width: 22px; height: 22px; }
+    
+    .ai-prompt-box input {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px; padding: 14px; color: #f7f3ec;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; outline: none; width: 100%;
+    }
+    .ai-prompt-box input:focus { border-color: rgba(224, 170, 94, 0.5); }
+    .ai-loading-text { font-size: 0.85rem; color: rgba(224, 170, 94, 0.8); display: none; font-style: italic; }
+
+    #floating-ai-btn {
+      position: absolute;
+      display: none;
+      background: rgba(24, 21, 19, 0.95);
+      border: 1px solid rgba(224, 170, 94, 0.4);
+      color: #e0aa5e;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      transition: background 0.2s ease;
+    }
+    #floating-ai-btn:hover {
+      background: rgba(224, 170, 94, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -396,7 +407,22 @@
     <span id="word-count">0 words</span>
   </div>
 
-  <!-- MODAL DE SALVARE -->
+  <!-- FLOATING AI BUTTON -->
+  <button id="floating-ai-btn" onmousedown="event.preventDefault()">✨ Ask AI</button>
+
+  <div id="ai-prompt-overlay">
+    <div class="ai-prompt-box">
+      <div class="ai-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        <span>AI Agent (Structured Style)</span>
+      </div>
+      <input type="text" id="ai-input" placeholder="Organize notes, answer questions, or rewrite text... (Press Enter)" autocomplete="off">
+      <div class="ai-loading-text" id="ai-loading">Thinking with Groq...</div>
+    </div>
+  </div>
+
   <div id="save-modal-overlay">
     <div class="save-modal" style="position: relative;">
       <button class="close-modal-btn" onclick="closeSaveModal()">✕</button>
@@ -404,7 +430,6 @@
       <p>Select an existing folder or create a new one to save your note.</p>
       
       <div class="folder-list" id="modal-folder-list">
-        <!-- Folderele vor fi injectate aici din JS -->
       </div>
 
       <div style="margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.4);">Or create a new folder:</div>
@@ -528,7 +553,6 @@
       saveAllTabsToStorage();
     }
 
-    // MODIFICAT: Când se închide ultimul tab, se șterg datele din storage și se redirecționează către Home
     function closeTab(id) {
       saveAllTabsToStorage();
       tabs = tabs.filter(t => t.id !== id);
@@ -537,7 +561,7 @@
         localStorage.removeItem('snapnote_tabs');
         localStorage.removeItem('snapnote_active_id');
         localStorage.removeItem('snapnote_open_file_id');
-        window.location.href = 'home.html'; // Schimbă cu 'index.html' dacă pagina ta de acasă se numește index.html, sau asigură-te că e numele corect
+        window.location.href = 'Home.html'; 
       } else {
         buildTabUI();
         if (activeTabId === id) {
@@ -570,11 +594,108 @@
     noteTitle.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
     noteBody.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
 
+    const GROQ_API_KEY = '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';
+    const GROQ_MODEL = 'openai/gpt-oss-120b'; 
+
+    const aiOverlay = document.getElementById('ai-prompt-overlay');
+    const aiInput = document.getElementById('ai-input');
+    const aiLoading = document.getElementById('ai-loading');
+    
+    let lastKeyTyped = '';
+    let savedSelectionRange = null;
+
+    const floatingAiBtn = document.getElementById('floating-ai-btn');
+
+    // Show button when text is highlighted
+    noteBody.addEventListener('mouseup', () => {
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (!selection.isCollapsed && selection.toString().trim().length > 0) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          
+          floatingAiBtn.style.display = 'block';
+          // Position it perfectly centered above the highlighted text
+          floatingAiBtn.style.top = `${rect.top + window.scrollY - 38}px`;
+          floatingAiBtn.style.left = `${rect.left + window.scrollX + (rect.width / 2) - (floatingAiBtn.offsetWidth / 2)}px`;
+        } else {
+          floatingAiBtn.style.display = 'none';
+        }
+      }, 10); 
+    });
+
+    // Hide button if you click anywhere else
+    document.addEventListener('mousedown', (e) => {
+      if (e.target !== floatingAiBtn) {
+        floatingAiBtn.style.display = 'none';
+      }
+    });
+
+    // Trigger AI when the floating button is clicked
+    floatingAiBtn.addEventListener('click', () => {
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        savedSelectionRange = selection.getRangeAt(0).cloneRange();
+        // Collapse to the end so the AI response inserts *after* your selected text instead of deleting it
+        savedSelectionRange.collapse(false);
+      }
+      
+      floatingAiBtn.style.display = 'none';
+      aiOverlay.classList.add('active');
+      aiInput.value = '';
+      aiInput.focus();
+      showPopupNotification("✨ Groq AI Agent activated");
+    });
+
+    noteBody.addEventListener('keydown', (e) => {
+      if (e.key === '/' && lastKeyTyped === '.') {
+        e.preventDefault(); 
+        
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          savedSelectionRange = selection.getRangeAt(0).cloneRange();
+          savedSelectionRange.setStart(savedSelectionRange.startContainer, Math.max(0, savedSelectionRange.startOffset - 1));
+          savedSelectionRange.deleteContents();
+        }
+
+        aiOverlay.classList.add('active');
+        aiInput.value = '';
+        aiInput.focus();
+        showPopupNotification("✨ Groq AI Agent activated");
+      }
+      
+      lastKeyTyped = e.key;
+
+      if (e.key === 'ArrowUp') {
+        const sel = window.getSelection();
+        let isAtTop = false;
+        
+        if (noteBody.textContent.trim() === '') {
+          isAtTop = true;
+        } else if (sel.anchorNode) {
+          const testRange = sel.getRangeAt(0).cloneRange();
+          testRange.collapse(true);
+          const rect = testRange.getBoundingClientRect();
+          const bodyRect = noteBody.getBoundingClientRect();
+          if (rect.top - bodyRect.top < 30) isAtTop = true;
+        }
+
+        if (isAtTop) {
+          e.preventDefault();
+          noteTitle.focus();
+          const range = document.createRange();
+          range.selectNodeContents(noteTitle);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    });
+
     noteTitle.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter') {
         e.preventDefault();
         noteBody.focus();
-        
         const sel = window.getSelection();
         const range = document.createRange();
         if (noteBody.firstChild) {
@@ -588,40 +709,133 @@
       }
     });
 
-    noteBody.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') {
-        const sel = window.getSelection();
-        let isAtTop = false;
-        
-        if (noteBody.textContent.trim() === '') {
-          isAtTop = true;
-        } else if (sel.anchorNode) {
-          const testRange = sel.getRangeAt(0).cloneRange();
-          testRange.collapse(true);
-          const rect = testRange.getBoundingClientRect();
-          const bodyRect = noteBody.getBoundingClientRect();
-          
-          if (rect.top - bodyRect.top < 30) {
-            isAtTop = true;
-          }
-        }
-
-        if (isAtTop) {
-          e.preventDefault();
-          noteTitle.focus();
-          
-          const range = document.createRange();
-          range.selectNodeContents(noteTitle);
-          range.collapse(false);
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
+    aiInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        aiOverlay.classList.remove('active');
+        restoreCursor();
+      }
+      
+      if (e.key === 'Enter' && aiInput.value.trim() !== '') {
+        generateGroqAIResponse(aiInput.value.trim());
       }
     });
 
-    // ==========================================
-    // MODAL DE SALVARE (Ctrl+S)
-    // ==========================================
+    function restoreCursor() {
+      if (savedSelectionRange) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedSelectionRange);
+      }
+      noteBody.focus();
+    }
+
+    async function generateGroqAIResponse(prompt) {
+      aiInput.disabled = true;
+      aiLoading.style.display = 'block';
+      aiLoading.textContent = 'Thinking with Groq...';
+      
+      try {
+        const currentText = noteBody.innerText.trim();
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+              {
+                role: "system",
+                content: `You are an expert AI writing assistant. Your task is to help users organize, clean up, summarize, or expand their notes with exceptionally clean structure.
+
+Formatting Rules:
+- Use clear markdown headers (e.g., ### Section Name) to group information.
+- Use bold text (**Key Concept**) for important terms.
+- Use short, digestible bullet points (*).
+- No emojis.
+- No conversational filler. Output ONLY the requested content directly.
+- If the user asks for research, provide specific, relevant real-world URLs/links in clean markdown format: [Site Name](URL).`
+              },
+              {
+                role: "user",
+                content: `Current Document Text: "${currentText}"\n\nUser Request: ${prompt}`
+              }
+            ],
+            max_tokens: 350,
+            temperature: 0.3
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error("Groq HTTP Error:", response.status, errText);
+          showPopupNotification(`❌ Groq Error: ${response.status}`);
+          return; 
+        }
+
+        const data = await response.json();
+        
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          let aiResponseText = data.choices[0].message.content.trim();
+          
+          let labelText = "AI Generated Content";
+          const lowerPrompt = prompt.toLowerCase();
+          if (lowerPrompt.includes("sumar") || lowerPrompt.includes("summarize") || lowerPrompt.includes("rezumat")) {
+            labelText = "AI Generated Summary";
+          } else if (lowerPrompt.includes("research") || lowerPrompt.includes("cercetare") || lowerPrompt.includes("site")) {
+            labelText = "AI Research Resources";
+          } else if (lowerPrompt.includes("organize") || lowerPrompt.includes("organizeaza")) {
+            labelText = "AI Organized Notes";
+          }
+
+          const formattedHtmlBlock = `<div class="ai-generated-block"><span class="ai-label">✦ ${labelText}</span>${aiResponseText.replace(/^###\s*(.*)$/gm, '<h4>$1</h4>')}</div>`;
+
+          insertHtmlAtCursor(formattedHtmlBlock);
+          showPopupNotification("✅ AI formatting complete.");
+        } else {
+          showPopupNotification("❌ AI couldn't generate a response.");
+        }
+
+      } catch (error) {
+        console.error("Groq fetch error details:", error);
+        showPopupNotification("❌ Network error. Check your connection.");
+      } finally {
+        aiInput.disabled = false;
+        aiLoading.style.display = 'none';
+        aiOverlay.classList.remove('active');
+        saveAllTabsToStorage();
+        updateStats();
+      }
+    }
+
+    function insertHtmlAtCursor(htmlString) {
+      restoreCursor();
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      
+      range.deleteContents();
+      
+      const div = document.createElement('div');
+      div.innerHTML = htmlString;
+      const frag = document.createDocumentFragment();
+      let lastNode;
+      while (div.firstChild) {
+        lastNode = frag.appendChild(div.firstChild);
+      }
+      
+      range.insertNode(frag);
+      
+      if (lastNode) {
+        range.setStartAfter(lastNode);
+        range.setEndAfter(lastNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+
     let modalNavItems = [];
     let modalFocusedIndex = 0;
 
@@ -667,6 +881,10 @@
       }
     }
 
+    function closeSaveModal() {
+      saveModalOverlay.classList.remove('active');
+    }
+
     function openSaveModal() {
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
       const listContainer = document.getElementById('modal-folder-list');
@@ -680,10 +898,6 @@
       document.getElementById('new-folder-input').value = '';
       saveModalOverlay.classList.add('active');
       buildModalNavigation();
-    }
-
-    function closeSaveModal() {
-      saveModalOverlay.classList.remove('active');
     }
 
     function removeFileFromAllFolders(folderArray, targetFileId) {
@@ -745,13 +959,13 @@
       }, 900);
     }
 
-    window.saveToExistingFolder = function(pathStr) {
+    function saveToExistingFolder(pathStr) {
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
       let targetFolder = getFolderObjByPath(projects, pathStr);
       executeSaveIntoFolder(projects, targetFolder);
-    };
+    }
 
-    window.saveToNewFolder = function() {
+    function saveToNewFolder() {
       const input = document.getElementById('new-folder-input');
       const folderName = input.value.trim();
       if (!folderName) {
@@ -764,9 +978,11 @@
       projects.push(newFolder);
       
       executeSaveIntoFolder(projects, newFolder);
-    };
+    }
 
     document.addEventListener('keydown', (e) => {
+      if (aiOverlay.classList.contains('active')) return;
+
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's')) {
         e.preventDefault();
         openSaveModal();
@@ -851,7 +1067,6 @@
         }
       }
 
-      // MODIFICAT: Dacă nu există tab-uri salvate, editorul nu mai creează un tab automat, ci trimite utilizatorul la Home
       if (tabs.length > 0) {
         const targetId = localStorage.getItem('snapnote_active_id') || tabs[0].id;
         activeTabId = tabs.some(t => t.id === targetId) ? targetId : tabs[0].id;
@@ -859,7 +1074,7 @@
         switchTab(activeTabId);
         showPopupNotification();
       } else {
-        window.location.href = 'home.html'; // Redirecționează direct la Home dacă e gol (modifică cu numele fișierului tău home, ex: index.html dacă celălalt e home.html)
+        createNewTab();
       }
     });
   </script>

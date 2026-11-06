@@ -495,6 +495,10 @@
 
     function closeCustomPrompt(value) {
       document.getElementById('custom-prompt-overlay').classList.remove('active');
+      
+      document.getElementById('custom-prompt-input').blur();
+      document.body.focus();
+      
       if (promptResolver) {
         promptResolver(value);
         promptResolver = null;
@@ -522,6 +526,9 @@
 
     function closeCustomConfirm(result) {
       document.getElementById('custom-confirm-overlay').classList.remove('active');
+      
+      document.body.focus();
+      
       if (confirmResolver) {
         confirmResolver(result);
         confirmResolver = null;
