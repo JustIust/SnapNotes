@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projectree - SnapNote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: rgba(224, 170, 94, 0.35); color: #fff; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0d0c0b;
+      background-image: 
+        radial-gradient(at 20% 15%, rgba(185, 95, 28, 0.52) 0px, transparent 65%),
+        radial-gradient(at 80% 85%, rgba(95, 48, 20, 0.32) 0px, transparent 70%),
+        radial-gradient(at 50% 40%, rgba(35, 24, 18, 0.9) 0px, #0b0a09 100%);
+      background-attachment: fixed;
+      color: #e5e0d8;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      line-height: 1.6;
+      padding-top: 40px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.025;
+      z-index: 999;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><filter id="fineNoise"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23fineNoise)"/></svg>');
+    }
+
+    #project-wrapper {
+      width: 100%;
+      max-width: 1160px;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      position: relative;
+      animation: fadeIn 0.35s ease forwards;
+      padding-bottom: 60px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sleeping-otter-container {
+      position: absolute;
+      top: -24px;
+      left: 12px;
+      display: flex;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    .otter-svg {
+      width: 58px;
+      height: 28px;
+      animation: otterBreathe 3.5s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    @keyframes otterBreathe {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      50% { transform: scaleY(0.92) translateY(1px); }
+    }
+
+    .otter-zzz {
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(224, 170, 94, 0.75);
+      animation: zzzFloat 3.5s infinite;
+      user-select: none;
+    }
+
+    @keyframes zzzFloat {
+      0% { opacity: 0; transform: translate(0, 4px) scale(0.8); }
+      40% { opacity: 0.8; }
+      100% { opacity: 0; transform: translate(8px, -14px) scale(1.2); }
+    }
+
+    .project-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: none;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #f7f3ec;
+      backdrop-filter: blur(8px);
+      user-select: none;
+    }
+
+    #project-dashboard {
+      display: flex;
+      flex-direction: column;
+      padding: 32px 40px;
+      min-height: 75vh;
+      background: rgba(24, 21, 19, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0 20px 20px 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .dashboard-title {
+      font-family: Georgia, serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #f7f3ec;
+    }
+
+    .dashboard-subtitle {
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      font: 600 0.82rem 'Plus Jakarta Sans', sans-serif;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e5e0d8;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(224, 170, 94, 0.4); }
+
+    .explorer-box {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(18, 15, 13, 0.6);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .explorer-header {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .explorer-path {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ded8ce;
+      font-weight: 500;
+    }
+
+    .folder-group {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .folder-group:last-child { border-bottom: none; }
+
+    .folder-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 0.88rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .folder-row:hover { background: rgba(255, 255, 255, 0.05); }
+
+    .folder-title-col {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #f7f3ec;
+    }
+
+    .folder-icon {
+      color: #e0aa5e;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .folder-row.open .folder-icon {
+      transform: rotate(90deg);
+    }
+
+    .note-count-tag {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .notes-tree-list {
+      display: none;
+      background: rgba(0, 0, 0, 0.2);
+      padding-left: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .notes-tree-list.expanded { display: block; }
+
+    .note-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 0.85rem;
+      transition: background 0.15s ease;
+    }
+    .note-row:last-child { border-bottom: none; }
+    .note-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+    .note-name-col {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .note-name-col:hover .note-title-text {
+      color: #e0aa5e;
+      text-decoration: underline;
+    }
+
+    .note-icon {
+      color: rgba(255, 255, 255, 0.35);
+      flex-shrink: 0;
+    }
+
+    .note-title-text {
+      color: #ded8ce;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: color 0.15s ease;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .action-btn:hover { color: #e57373; background: rgba(255, 255, 255, 0.05); }
+
+    .empty-state-msg {
+      padding: 36px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    #shortcut-popup {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(36, 30, 27, 0.92);
+      border: 1px solid rgba(224, 170, 94, 0.25);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.82rem;
+      color: #ded8ce;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    #shortcut-popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .kbd-badge {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #e0aa5e;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="project-wrapper">
+    <div class="sleeping-otter-container" title="Shh... sleeping otter!">
+      <span class="otter-zzz">Zzz</span>
+      <svg class="otter-svg" viewBox="0 0 70 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 6 25 Q 12 18 22 22 Q 12 28 6 25 Z" fill="#6a4427"/>
+        <ellipse cx="32" cy="20" rx="18" ry="8" fill="#7d5231"/>
+        <ellipse cx="34" cy="21" rx="12" ry="5.5" fill="#cbb396"/>
+        <ellipse cx="50" cy="17" rx="8" ry="6.5" fill="#7d5231"/>
+        <ellipse cx="54" cy="18.5" rx="4" ry="3" fill="#dfcfbd"/>
+        <path d="M 56 17.5 Q 57.5 17.5 57 18.5 Q 56.5 19.5 55.5 18.5 Z" fill="#20130a"/>
+        <path d="M 49 16 Q 51 18 53 16" stroke="#20130a" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <circle cx="45" cy="12" r="1.8" fill="#5c381f"/>
+        <path d="M 54 19 L 60 18 M 54 19.5 L 59 20.5" stroke="#dfcfbd" stroke-width="0.8" opacity="0.7"/>
+        <ellipse cx="44" cy="24" rx="3" ry="2" fill="#5c381f"/>
+        <ellipse cx="22" cy="24" rx="3" ry="2" fill="#5c381f"/>
+      </svg>
+    </div>
+
+    <div class="project-header-bar">
+      <span>Projectree Explorer</span>
+    </div>
+
+    <div id="project-dashboard">
+      <div class="dashboard-header">
+        <div class="header-title-area">
+          <h1 class="dashboard-title">Notebooks & Folders</h1>
+          <p class="dashboard-subtitle">Organize your thought structure and manage notes.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn" id="new-folder-btn">+ New Folder</button>
+        </div>
+      </div>
+
+      <div class="explorer-box">
+        <div class="explorer-header">
+          <div class="explorer-path">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M.5 3l.04 1.5H14v-1A1.5 1.5 0 0 0 12.5 2H7l-1.5-1.5H2A1.5 1.5 0 0 0 .5 2z"/>
+              <path d="M15.5 5H.5l1 9A1.5 1.5 0 0 0 3 15h10a1.5 1.5 0 0 0 1.5-1z"/>
+            </svg>
+            <span>Projects</span>
+          </div>
+          <span id="total-folders-badge">0 Folders</span>
+        </div>
+
+        <div id="folders-container"></div>
+      </div>
+
+      <div id="shortcut-popup">
+        <span>💡 Shortcut: Press <span class="kbd-badge">Alt</span> + <span class="kbd-badge">E</span> to return to Index</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+    const foldersContainer = document.getElementById('folders-container');
+    const totalFoldersBadge = document.getElementById('total-folders-badge');
+    const shortcutPopup = document.getElementById('shortcut-popup');
+
+    function showPopupNotification() {
+      shortcutPopup.classList.add('show');
+      setTimeout(() => { shortcutPopup.classList.remove('show'); }, 4500);
+    }
+    window.addEventListener('DOMContentLoaded', showPopupNotification);
+
+    function saveProjects() {
+      localStorage.setItem('snapnote_projects', JSON.stringify(projects));
+    }
+
+    function renderFolders() {
+      projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      foldersContainer.innerHTML = '';
+      totalFoldersBadge.textContent = `${projects.length} ${projects.length === 1 ? 'Folder' : 'Folders'}`;
+
+      if (projects.length === 0) {
+        foldersContainer.innerHTML = `
+          <div class="empty-state-msg">
+            No folders created yet. Click "+ New Folder" to organize your notes.
+          </div>`;
+        return;
+      }
+
+      projects.forEach((proj, pIdx) => {
+        const folderGroup = document.createElement('div');
+        folderGroup.className = 'folder-group';
+
+        const files = proj.files || [];
+        
+        let notesListHtml = '';
+        if (files.length === 0) {
+          notesListHtml = `<div class="note-row" style="color: rgba(255,255,255,0.3); font-style: italic;">No notes in this folder.</div>`;
+        } else {
+          files.forEach((file, fIdx) => {
+            notesListHtml += `
+              <div class="note-row">
+                <div class="note-name-col" onclick="openFile('${file.id}')">
+                  <svg class="note-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 1.75C4 .784 4.784 0 5.75 0h4.5c.966 0 1.75.784 1.75 1.75v12.5A1.75 1.75 0 0 1 10.25 16h-4.5A1.75 1.75 0 0 1 4 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h4.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Z"/>
+                  </svg>
+                  <span class="note-title-text">${file.title || 'Untitled Note'}</span>
+                </div>
+                <div>
+                  <button class="action-btn" onclick="event.stopPropagation(); deleteNote(${pIdx}, ${fIdx})" title="Delete note">✕</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        folderGroup.innerHTML = `
+          <div class="folder-row" id="folder-row-${pIdx}" onclick="toggleFolder(${pIdx})">
+            <div class="folder-title-col">
+              <svg class="folder-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06z"/>
+              </svg>
+              <span>📁 ${proj.name}</span>
+              <span class="note-count-tag">${files.length} ${files.length === 1 ? 'note' : 'notes'}</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;" onclick="event.stopPropagation();">
+              <button class="btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="addNoteToFolder(${pIdx})">+ Add Note</button>
+              <button class="action-btn" onclick="deleteFolder(${pIdx})" title="Delete folder">Delete</button>
+            </div>
+          </div>
+          <div class="notes-tree-list" id="notes-tree-${pIdx}">
+            ${notesListHtml}
+          </div>
+        `;
+
+        foldersContainer.appendChild(folderGroup);
+      });
+    }
+
+    window.toggleFolder = function(pIdx) {
+      const folderRow = document.getElementById(`folder-row-${pIdx}`);
+      const notesList = document.getElementById(`notes-tree-${pIdx}`);
+      folderRow.classList.toggle('open');
+      notesList.classList.toggle('expanded');
+    };
+
+    document.getElementById('new-folder-btn').addEventListener('click', () => {
+      const name = prompt("Enter folder name:");
+      if (name && name.trim()) {
+        projects.push({ name: name.trim(), files: [] });
+        saveProjects();
+        renderFolders();
+      }
+    });
+
+    window.addNoteToFolder = function(pIdx) {
+      const name = prompt("Enter note title:");
+      if (name && name.trim()) {
+        const newFile = { id: 'file_' + Date.now(), title: name.trim(), content: '' };
+        projects[pIdx].files.push(newFile);
+        saveProjects();
+        renderFolders();
+        
+        const folderRow = document.getElementById(`folder-row-${pIdx}`);
+        const notesList = document.getElementById(`notes-tree-${pIdx}`);
+        if (folderRow && notesList) {
+          folderRow.classList.add('open');
+          notesList.classList.add('expanded');
+        }
+      }
+    };
+
+    window.deleteFolder = function(pIdx) {
+      if (confirm(`Delete folder "${projects[pIdx].name}" and all its notes?`)) {
+        projects.splice(pIdx, 1);
+        saveProjects();
+        renderFolders();
+      }
+    };
+
+    window.deleteNote = function(pIdx, fIdx) {
+      if (confirm("Delete this note?")) {
+        const targetFile = projects[pIdx].files[fIdx];
+        
+        let savedTabs = JSON.parse(localStorage.getItem('snapnote_tabs')) || [];
+        savedTabs = savedTabs.filter(t => t.fileId !== targetFile.id);
+        localStorage.setItem('snapnote_tabs', JSON.stringify(savedTabs));
+
+        projects[pIdx].files.splice(fIdx, 1);
+        saveProjects();
+        renderFolders();
+      }
+    };
+
+    window.openFile = function(fileId) {
+      localStorage.setItem('snapnote_open_file_id', fileId);
+      window.location.href = 'index.html';
+    };
+
+    // Shortcut: Alt + W -> Save and navigate to Projectree.html
+    window.addEventListener('keydown', (e) => {
+      if (e.altKey && e.code === 'KeyW') {
+        e.preventDefault();
+        saveAllTabsToStorage();
+        window.location.href = 'Projectree.html';
+      }
+    });
+
+    renderFolders();
+  </script>
+</body>
+</html>

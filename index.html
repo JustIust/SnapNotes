@@ -1,11 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor - SnapNote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: rgba(224, 170, 94, 0.35); color: #fff; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0d0c0b;
+      background-image: 
+        radial-gradient(at 20% 15%, rgba(185, 95, 28, 0.52) 0px, transparent 65%),
+        radial-gradient(at 80% 85%, rgba(95, 48, 20, 0.32) 0px, transparent 70%),
+        radial-gradient(at 50% 40%, rgba(35, 24, 18, 0.9) 0px, #0b0a09 100%);
+      background-attachment: fixed;
+      color: #e5e0d8;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      line-height: 1.6;
+      padding-top: 30px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.025;
+      z-index: 999;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><filter id="fineNoise"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23fineNoise)"/></svg>');
+    }
+
+    #tab-wrapper {
+      width: 100%;
+      max-width: 1160px;
+      flex-direction: column;
+      z-index: 1;
+      position: relative;
+      animation: fadeIn 0.35s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sleeping-otter-container {
+      position: absolute;
+      top: -24px;
+      left: 12px;
+      display: flex;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    .otter-svg {
+      width: 58px;
+      height: 28px;
+      animation: otterBreathe 3.5s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    @keyframes otterBreathe {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      50% { transform: scaleY(0.92) translateY(1px); }
+    }
+
+    .otter-zzz {
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(224, 170, 94, 0.75);
+      animation: zzzFloat 3.5s infinite;
+      user-select: none;
+    }
+
+    @keyframes zzzFloat {
+      0% { opacity: 0; transform: translate(0, 4px) scale(0.8); }
+      40% { opacity: 0.8; }
+      100% { opacity: 0; transform: translate(8px, -14px) scale(1.2); }
+    }
+
+    .chrome-tab-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 0 8px;
+      height: 42px;
+      user-select: none;
+      position: relative;
+    }
+
+    .chrome-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 36px;
+      min-width: 40px;
+      max-width: 380px;
+      flex: 1;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: none;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .chrome-tab:hover { background: rgba(255, 255, 255, 0.07); color: #e5e0d8; }
+
+    .chrome-tab.active {
+      background: rgba(24, 21, 19, 0.88);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #f7f3ec;
+      height: 42px;
+      font-weight: 500;
+      backdrop-filter: blur(16px);
+    }
+
+    .chrome-tab-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .chrome-tab-close {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; opacity: 0.4;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .chrome-tab-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.15); }
+
+    .chrome-new-tab {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: rgba(255, 255, 255, 0.5);
+      cursor: pointer; transition: all 0.15s ease;
+      margin-left: 4px; margin-bottom: 3px;
+      flex-shrink: 0;
+    }
+    .chrome-new-tab:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    #editor-screen {
+      display: flex;
+      flex-direction: column;
+      padding: 40px;
+      min-height: 75vh;
+      background: rgba(24, 21, 19, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0 20px 20px 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      position: relative;
+      margin-bottom: 50px;
+    }
+
+    .note-meta {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.8rem; color: rgba(255, 255, 255, 0.35);
+      margin-bottom: 24px;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #60b678; }
+
+    .note-title {
+      font-family: Georgia, serif; font-size: 2.6rem; font-weight: 700;
+      border: none; outline: none; color: #f7f3ec; width: 100%;
+      margin-bottom: 24px; caret-color: #e0aa5e;
+    }
+    .note-title:empty:before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.2); }
+
+    .note-body {
+      font-size: 1.08rem; color: #ded8ce; border: none; outline: none;
+      min-height: 400px; line-height: 1.75; caret-color: #e0aa5e;
+      white-space: pre-wrap;
+    }
+    .note-body:empty:before { content: attr(data-placeholder); color: rgba(255, 255, 255, 0.2); }
+
+    .editor-footer {
+      position: fixed; bottom: 24px; right: 32px;
+      font-size: 0.78rem; color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.05); padding: 6px 14px;
+      border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    #shortcut-popup {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(36, 30, 27, 0.92);
+      border: 1px solid rgba(224, 170, 94, 0.25);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.82rem;
+      color: #ded8ce;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    #shortcut-popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .kbd-badge {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #e0aa5e;
+    }
+  </style>
 </head>
 <body>
-    
+
+  <div id="tab-wrapper">
+    <div class="sleeping-otter-container" title="Shh... sleeping otter!">
+      <span class="otter-zzz">Zzz</span>
+      <svg class="otter-svg" viewBox="0 0 70 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 6 25 Q 12 18 22 22 Q 12 28 6 25 Z" fill="#6a4427"/>
+        <ellipse cx="32" cy="20" rx="18" ry="8" fill="#7d5231"/>
+        <ellipse cx="34" cy="21" rx="12" ry="5.5" fill="#cbb396"/>
+        <ellipse cx="50" cy="17" rx="8" ry="6.5" fill="#7d5231"/>
+        <ellipse cx="54" cy="18.5" rx="4" ry="3" fill="#dfcfbd"/>
+        <path d="M 56 17.5 Q 57.5 17.5 57 18.5 Q 56.5 19.5 55.5 18.5 Z" fill="#20130a"/>
+        <path d="M 49 16 Q 51 18 53 16" stroke="#20130a" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <circle cx="45" cy="12" r="1.8" fill="#5c381f"/>
+        <path d="M 54 19 L 60 18 M 54 19.5 L 59 20.5" stroke="#dfcfbd" stroke-width="0.8" opacity="0.7"/>
+        <ellipse cx="44" cy="24" rx="3" ry="2" fill="#5c381f"/>
+        <ellipse cx="22" cy="24" rx="3" ry="2" fill="#5c381f"/>
+      </svg>
+    </div>
+
+    <div class="chrome-tab-bar" id="tab-bar">
+      <div class="chrome-new-tab" id="add-tab-btn" title="New Tab">+</div>
+    </div>
+
+    <div id="editor-screen">
+      <div class="note-meta">
+        <span class="status-dot"></span>
+        <span id="note-date">Today</span>
+        <span>•</span>
+        <span id="read-time">1 min read</span>
+      </div>
+
+      <div class="note-title" contenteditable="true" data-placeholder="Note Title..." spellcheck="true"></div>
+      <div class="note-body" contenteditable="true" data-placeholder="Type './' for AI agent" spellcheck="true"></div>
+
+      <div id="shortcut-popup">
+        <span>💡 Shortcut: Press <span class="kbd-badge">Alt</span> + <span class="kbd-badge">W</span> to open Projectree</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="editor-footer" id="editor-footer">
+    <span id="word-count">0 words</span>
+  </div>
+
+  <script>
+    const tabBar = document.getElementById('tab-bar');
+    const addTabBtn = document.getElementById('add-tab-btn');
+    const noteTitle = document.querySelector('.note-title');
+    const noteBody = document.querySelector('.note-body');
+    const shortcutPopup = document.getElementById('shortcut-popup');
+
+    let tabs = [];
+    let activeTabId = null;
+
+    document.getElementById('note-date').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    function showPopupNotification() {
+      shortcutPopup.classList.add('show');
+      setTimeout(() => { shortcutPopup.classList.remove('show'); }, 4500);
+    }
+
+    function saveCurrentTabState() {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (tab) {
+        tab.title = noteTitle.innerText.trim() || 'Untitled Note';
+        tab.body = noteBody.innerText;
+      }
+    }
+
+    function saveAllTabsToStorage() {
+      if (activeTabId) saveCurrentTabState();
+      localStorage.setItem('snapnote_tabs', JSON.stringify(tabs));
+      localStorage.setItem('snapnote_active_id', activeTabId);
+
+      let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      let updatedProjects = false;
+
+      tabs.forEach(tab => {
+        if (tab.fileId) {
+          for (let p of projects) {
+            let file = p.files.find(f => f.id === tab.fileId);
+            if (file) {
+              file.title = tab.title;
+              file.content = tab.body;
+              updatedProjects = true;
+              break;
+            }
+          }
+        }
+      });
+
+      if (updatedProjects) {
+        localStorage.setItem('snapnote_projects', JSON.stringify(projects));
+      }
+    }
+
+    function buildTabUI() {
+      document.querySelectorAll('.chrome-tab').forEach(el => el.remove());
+
+      tabs.forEach(tabData => {
+        const tabEl = document.createElement('div');
+        tabEl.className = 'chrome-tab';
+        tabEl.dataset.id = tabData.id;
+        tabEl.innerHTML = `
+          <svg style="width:14px;height:14px;opacity:0.6;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span class="chrome-tab-title">${tabData.title}</span>
+          <span class="chrome-tab-close">✕</span>
+        `;
+
+        tabEl.addEventListener('click', (e) => {
+          if (e.target.classList.contains('chrome-tab-close')) {
+            e.stopPropagation();
+            closeTab(tabData.id);
+          } else {
+            switchTab(tabData.id);
+          }
+        });
+
+        tabBar.insertBefore(tabEl, addTabBtn);
+      });
+    }
+
+    function switchTab(id) {
+      if (activeTabId && activeTabId !== id) saveCurrentTabState();
+      activeTabId = id;
+      const currentTab = tabs.find(t => t.id === id);
+
+      document.querySelectorAll('.chrome-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.id === id);
+      });
+
+      if (currentTab) {
+        noteTitle.innerText = currentTab.title === 'Untitled Note' ? '' : currentTab.title;
+        noteBody.innerText = currentTab.body || '';
+        updateStats();
+      }
+    }
+
+    function createNewTab() {
+      const id = Date.now().toString();
+      const tabData = { id, title: 'Untitled Note', body: '' };
+      tabs.push(tabData);
+      buildTabUI();
+      switchTab(id);
+      saveAllTabsToStorage();
+    }
+
+    function closeTab(id) {
+      saveAllTabsToStorage();
+      tabs = tabs.filter(t => t.id !== id);
+
+      if (tabs.length === 0) {
+        createNewTab();
+      } else {
+        buildTabUI();
+        if (activeTabId === id) {
+          switchTab(tabs[tabs.length - 1].id);
+        } else {
+          switchTab(activeTabId);
+        }
+      }
+      saveAllTabsToStorage();
+    }
+
+    addTabBtn.addEventListener('click', createNewTab);
+
+    function updateStats() {
+      const titleText = noteTitle.innerText.trim();
+      const currentTab = tabs.find(t => t.id === activeTabId);
+      if (currentTab) {
+        currentTab.title = titleText || 'Untitled Note';
+        currentTab.body = noteBody.innerText;
+        const tabTitleEl = document.querySelector(`.chrome-tab[data-id="${activeTabId}"] .chrome-tab-title`);
+        if (tabTitleEl) tabTitleEl.textContent = currentTab.title;
+      }
+
+      const fullText = (noteTitle.innerText + ' ' + noteBody.innerText).trim();
+      const words = fullText ? fullText.split(/\s+/).filter(Boolean).length : 0;
+      document.getElementById('word-count').textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+      document.getElementById('read-time').textContent = `${Math.max(1, Math.ceil(words / 200))} min read`;
+    }
+
+    noteTitle.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
+    noteBody.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const openFileId = localStorage.getItem('snapnote_open_file_id');
+      let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
+      tabs = JSON.parse(localStorage.getItem('snapnote_tabs')) || [];
+
+      if (openFileId) {
+        localStorage.removeItem('snapnote_open_file_id');
+        for (let p of projects) {
+          let file = p.files.find(f => f.id === openFileId);
+          if (file) {
+            let existing = tabs.find(t => t.fileId === file.id);
+            if (!existing) {
+              existing = { id: Date.now().toString(), fileId: file.id, title: file.title || 'Untitled', body: file.content || '' };
+              tabs.push(existing);
+            } else {
+              existing.body = file.content || '';
+              existing.title = file.title || 'Untitled';
+            }
+            activeTabId = existing.id;
+            buildTabUI();
+            switchTab(activeTabId);
+            saveAllTabsToStorage();
+            showPopupNotification();
+            return;
+          }
+        }
+      }
+
+      if (tabs.length > 0) {
+        const targetId = localStorage.getItem('snapnote_active_id') || tabs[0].id;
+        activeTabId = tabs.some(t => t.id === targetId) ? targetId : tabs[0].id;
+        buildTabUI();
+        switchTab(activeTabId);
+      } else {
+        createNewTab();
+      }
+      showPopupNotification();
+    });
+
+    // Shortcut: Alt + Q -> Save and navigate to Projectree.html
+    window.addEventListener('keydown', (e) => {
+      if (e.altKey && e.code === 'KeyQ') {
+        e.preventDefault();
+        saveAllTabsToStorage();
+        window.location.href = 'Projectree.html';
+      }
+    });
+
+    renderFolders();
+  </script>
 </body>
 </html>

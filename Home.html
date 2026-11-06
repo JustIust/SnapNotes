@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SnapNote - Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    ::selection { background: rgba(224, 170, 94, 0.35); color: #fff; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0d0c0b;
+      background-image: 
+        radial-gradient(at 20% 15%, rgba(185, 95, 28, 0.52) 0px, transparent 65%),
+        radial-gradient(at 80% 85%, rgba(95, 48, 20, 0.32) 0px, transparent 70%),
+        radial-gradient(at 50% 40%, rgba(35, 24, 18, 0.9) 0px, #0b0a09 100%);
+      background-attachment: fixed;
+      color: #e5e0d8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.025;
+      z-index: 999;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><filter id="fineNoise"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23fineNoise)"/></svg>');
+    }
+
+    .home-card {
+      background: rgba(24, 21, 19, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 50px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      position: relative;
+      width: 90%;
+      max-width: 440px;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .sleeping-otter-container {
+      position: absolute;
+      top: -28px;
+      left: 36px;
+      display: flex;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+
+    .otter-svg {
+      width: 58px;
+      height: 28px;
+      animation: otterBreathe 3.5s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    @keyframes otterBreathe {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      50% { transform: scaleY(0.92) translateY(1px); }
+    }
+
+    .otter-zzz {
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(224, 170, 94, 0.75);
+      animation: zzzFloat 3.5s infinite;
+      user-select: none;
+    }
+
+    @keyframes zzzFloat {
+      0% { opacity: 0; transform: translate(0, 4px) scale(0.8); }
+      40% { opacity: 0.8; }
+      100% { opacity: 0; transform: translate(8px, -14px) scale(1.2); }
+    }
+
+    h1 { font-family: Georgia, serif; font-size: 2.2rem; color: #f7f3ec; }
+    p { color: rgba(255, 255, 255, 0.5); font-size: 0.92rem; margin-top: -10px; margin-bottom: 10px; }
+
+    .btn {
+      padding: 13px 24px;
+      font: 600 0.92rem 'Plus Jakarta Sans', sans-serif;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #e5e0d8;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); border-color: rgba(224, 170, 94, 0.4); }
+    .btn.primary { background: rgba(224, 170, 94, 0.15); border-color: rgba(224, 170, 94, 0.3); color: #f7f3ec; }
+  </style>
+</head>
+<body>
+  <div class="home-card">
+    <div class="sleeping-otter-container" title="Shh... sleeping otter!">
+      <span class="otter-zzz">Zzz</span>
+      <svg class="otter-svg" viewBox="0 0 70 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 6 25 Q 12 18 22 22 Q 12 28 6 25 Z" fill="#6a4427"/>
+        <ellipse cx="32" cy="20" rx="18" ry="8" fill="#7d5231"/>
+        <ellipse cx="34" cy="21" rx="12" ry="5.5" fill="#cbb396"/>
+        <ellipse cx="50" cy="17" rx="8" ry="6.5" fill="#7d5231"/>
+        <ellipse cx="54" cy="18.5" rx="4" ry="3" fill="#dfcfbd"/>
+        <path d="M 56 17.5 Q 57.5 17.5 57 18.5 Q 56.5 19.5 55.5 18.5 Z" fill="#20130a"/>
+        <path d="M 49 16 Q 51 18 53 16" stroke="#20130a" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <circle cx="45" cy="12" r="1.8" fill="#5c381f"/>
+        <path d="M 54 19 L 60 18 M 54 19.5 L 59 20.5" stroke="#dfcfbd" stroke-width="0.8" opacity="0.7"/>
+        <ellipse cx="44" cy="24" rx="3" ry="2" fill="#5c381f"/>
+        <ellipse cx="22" cy="24" rx="3" ry="2" fill="#5c381f"/>
+      </svg>
+    </div>
+    <h1>SnapNote</h1>
+    <p>Minimalist atmosphere for your thoughts.</p>
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+      <button class="btn primary" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">Open Editor</button>
+      <button class="btn" onclick="location.href='Projectree.html'">Open Projectree</button>
+    </div>
+  </div>
+</body>
+</html>
