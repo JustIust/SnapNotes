@@ -528,12 +528,16 @@
       saveAllTabsToStorage();
     }
 
+    // MODIFICAT: Când se închide ultimul tab, se șterg datele din storage și se redirecționează către Home
     function closeTab(id) {
       saveAllTabsToStorage();
       tabs = tabs.filter(t => t.id !== id);
 
       if (tabs.length === 0) {
-        createNewTab();
+        localStorage.removeItem('snapnote_tabs');
+        localStorage.removeItem('snapnote_active_id');
+        localStorage.removeItem('snapnote_open_file_id');
+        window.location.href = 'home.html'; // Schimbă cu 'index.html' dacă pagina ta de acasă se numește index.html, sau asigură-te că e numele corect
       } else {
         buildTabUI();
         if (activeTabId === id) {
@@ -541,8 +545,8 @@
         } else {
           switchTab(activeTabId);
         }
+        saveAllTabsToStorage();
       }
-      saveAllTabsToStorage();
     }
 
     addTabBtn.addEventListener('click', createNewTab);
@@ -616,7 +620,7 @@
     });
 
     // ==========================================
-    // MODAL DE SALVARE (Ctrl+S) - FIX PENTRU PROJECTREE
+    // MODAL DE SALVARE (Ctrl+S)
     // ==========================================
     let modalNavItems = [];
     let modalFocusedIndex = 0;
@@ -706,7 +710,6 @@
       return current;
     }
 
-    // [FIXED] Aceasta functie acum primeste direct `projects` ul corect ca sa nu il suprascrie
     function executeSaveIntoFolder(projects, targetFolderObj) {
       saveCurrentTabState();
       const currentTab = tabs.find(t => t.id === activeTabId);
@@ -731,7 +734,6 @@
         });
       }
 
-      // Salvăm tot sistemul proiectelor cu noile actualizări!
       localStorage.setItem('snapnote_projects', JSON.stringify(projects));
       localStorage.setItem('snapnote_tabs', JSON.stringify(tabs));
       
@@ -743,14 +745,12 @@
       }, 900);
     }
 
-    // [FIXED] Acum trimite lista `projects` catre funcția `executeSaveIntoFolder`
     window.saveToExistingFolder = function(pathStr) {
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
       let targetFolder = getFolderObjByPath(projects, pathStr);
       executeSaveIntoFolder(projects, targetFolder);
     };
 
-    // [FIXED] Acum adaugă noul folder în structură și trimite structura actualizată
     window.saveToNewFolder = function() {
       const input = document.getElementById('new-folder-input');
       const folderName = input.value.trim();
@@ -766,11 +766,7 @@
       executeSaveIntoFolder(projects, newFolder);
     };
 
-    // ==========================================
-    // GLOBAL KEYDOWN LISTENER
-    // ==========================================
     document.addEventListener('keydown', (e) => {
-      
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's')) {
         e.preventDefault();
         openSaveModal();
@@ -808,13 +804,11 @@
         return;
       }
 
-      // Universal Toggle: Alt + W
       if (e.altKey && (e.code === 'KeyW' || e.key.toLowerCase() === 'w' || e.key === '∑')) {
         e.preventDefault();
         saveAllTabsToStorage();
         window.location.href = 'Projectree.html';
       }
-
     });
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -857,17 +851,17 @@
         }
       }
 
+      // MODIFICAT: Dacă nu există tab-uri salvate, editorul nu mai creează un tab automat, ci trimite utilizatorul la Home
       if (tabs.length > 0) {
         const targetId = localStorage.getItem('snapnote_active_id') || tabs[0].id;
         activeTabId = tabs.some(t => t.id === targetId) ? targetId : tabs[0].id;
         buildTabUI();
         switchTab(activeTabId);
+        showPopupNotification();
       } else {
-        createNewTab();
+        window.location.href = 'home.html'; // Redirecționează direct la Home dacă e gol (modifică cu numele fișierului tău home, ex: index.html dacă celălalt e home.html)
       }
-      showPopupNotification();
     });
-
   </script>
 </body>
 </html>

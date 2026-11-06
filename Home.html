@@ -42,7 +42,7 @@
       background: rgba(24, 21, 19, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 24px;
-      padding: 50px 60px;
+      padding: 50px 40px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -51,7 +51,7 @@
       backdrop-filter: blur(16px);
       position: relative;
       width: 90%;
-      max-width: 440px;
+      max-width: 520px;
       text-align: center;
       z-index: 1;
     }
@@ -97,21 +97,49 @@
     h1 { font-family: Georgia, serif; font-size: 2.2rem; color: #f7f3ec; }
     p { color: rgba(255, 255, 255, 0.5); font-size: 0.92rem; margin-top: -10px; margin-bottom: 10px; }
 
+    .buttons-container {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
     .btn {
-      padding: 13px 24px;
-      font: 600 0.92rem 'Plus Jakarta Sans', sans-serif;
+      flex: 1;
+      padding: 24px 16px;
+      font: 600 0.9rem 'Plus Jakarta Sans', sans-serif;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
       color: #e5e0d8;
       cursor: pointer;
-      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn svg {
+      width: 26px;
+      height: 26px;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.2s ease;
     }
     
-    /* MODIFICAT: am adăugat .btn:focus pentru navigarea cu tastatura */
-    .btn:hover, .btn:focus { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); border-color: rgba(224, 170, 94, 0.4); outline: none; }
-    .btn.primary { background: rgba(224, 170, 94, 0.15); border-color: rgba(224, 170, 94, 0.3); color: #f7f3ec; }
+    .btn:hover, .btn:focus {
+      background: rgba(224, 170, 94, 0.18);
+      border-color: rgba(224, 170, 94, 0.5);
+      color: #f7f3ec;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(224, 170, 94, 0.15);
+    }
+
+    .btn:hover svg, .btn:focus svg {
+      color: #e0aa5e;
+    }
   </style>
 </head>
 <body>
@@ -133,30 +161,45 @@
       </svg>
     </div>
     <h1>SnapNote</h1>
-    <p>Minimalist atmosphere for your thoughts.</p>
+    <p>Write your thoughts.</p>
     
-    <!-- MODIFICAT: am adăugat ID-uri la butoane -->
-    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-      <button class="btn primary" id="btn-editor" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">Open Editor</button>
-      <button class="btn" id="btn-tree" onclick="location.href='Projectree.html'">Open Projectree</button>
+    <div class="buttons-container">
+      <!-- Butonul Editor (cu iconiță nouă de fișier / document) -->
+      <button class="btn" id="btn-editor" onclick="localStorage.removeItem('snapnote_open_file_id'); location.href='index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Open Editor
+      </button>
+
+      <!-- Butonul Projectree (cu iconiță de folder) -->
+      <button class="btn" id="btn-tree" onclick="location.href='Projectree.html'">
+        <svg viewBox="0 0 16 16" fill="currentColor">
+          <path d="M.5 3l.04 1.5H14v-1A1.5 1.5 0 0 0 12.5 2H7l-1.5-1.5H2A1.5 1.5 0 0 0 .5 2z"/>
+          <path d="M15.5 5H.5l1 9A1.5 1.5 0 0 0 3 15h10a1.5 1.5 0 0 0 1.5-1z"/>
+        </svg>
+        Open Projectree
+      </button>
     </div>
   </div>
 
-  <!-- NOU: Script pentru navigarea cu tastatura -->
   <script>
     const btnEditor = document.getElementById('btn-editor');
     const btnTree = document.getElementById('btn-tree');
     
-    // Selectăm automat primul buton când se încarcă pagina
     window.addEventListener('DOMContentLoaded', () => {
       btnEditor.focus(); 
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      if (e.key === 'ArrowRight') {
         e.preventDefault();
         btnTree.focus();
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         btnEditor.focus();
       }
