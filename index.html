@@ -29,6 +29,7 @@
       position: relative;
       overflow-x: hidden;
     }
+    body:focus { outline: none; } /* Prevents ugly focus rings when programmatically focused */
 
     body::before {
       content: "";
@@ -362,7 +363,7 @@
     }
   </style>
 </head>
-<body>
+<body tabindex="-1">
 
   <div id="tab-wrapper">
     <div class="sleeping-otter-container" title="Shh... sleeping otter!">
@@ -398,7 +399,7 @@
       <div class="note-body" contenteditable="true" data-placeholder="Type './' for AI agent" spellcheck="true"></div>
 
       <div id="shortcut-popup">
-        <span>💡 Save: <span class="kbd-badge">Ctrl</span>+<span class="kbd-badge">S</span> | Switch: <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span></span>
+        <span>💡 Save: <span class="kbd-badge">Ctrl</span>+<span class="kbd-badge">S</span> | Switch: <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span> | Close: <span class="kbd-badge">Esc</span></span>
       </div>
     </div>
   </div>
@@ -594,7 +595,7 @@
     noteTitle.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
     noteBody.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
 
-    const GROQ_API_KEY = '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';
+    const GROQ_API_KEY = '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';//paste the Groq API key from the README
     const GROQ_MODEL = 'openai/gpt-oss-120b'; 
 
     const aiOverlay = document.getElementById('ai-prompt-overlay');
@@ -883,6 +884,7 @@ Formatting Rules:
 
     function closeSaveModal() {
       saveModalOverlay.classList.remove('active');
+      setTimeout(() => document.body.focus(), 10);
     }
 
     function openSaveModal() {
@@ -1024,6 +1026,13 @@ Formatting Rules:
         e.preventDefault();
         saveAllTabsToStorage();
         window.location.href = 'Projectree.html';
+        return;
+      }
+      
+      // Close active note on Escape
+      if (e.key === 'Escape' && activeTabId && !saveModalOverlay.classList.contains('active') && !aiOverlay.classList.contains('active')) {
+          closeTab(activeTabId);
+          return;
       }
     });
 
@@ -1031,6 +1040,9 @@ Formatting Rules:
       const openFileId = localStorage.getItem('snapnote_open_file_id');
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
       tabs = JSON.parse(localStorage.getItem('snapnote_tabs')) || [];
+
+      // Ensure the body has initial focus for global arrow shortcuts
+      setTimeout(() => document.body.focus(), 10);
 
       if (openFileId) {
         localStorage.removeItem('snapnote_open_file_id');

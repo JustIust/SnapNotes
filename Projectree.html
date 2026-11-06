@@ -29,6 +29,7 @@
       position: relative;
       overflow-x: hidden;
     }
+    body:focus { outline: none; }
 
     body::before {
       content: "";
@@ -403,7 +404,7 @@
     .btn-danger:hover { background: rgba(229, 115, 115, 0.25); }
   </style>
 </head>
-<body>
+<body tabindex="-1">
 
   <div id="project-wrapper">
     <div class="sleeping-otter-container" title="Shh... sleeping otter!">
@@ -434,8 +435,8 @@
           <p class="dashboard-subtitle">Organize your thought structure and manage notes.</p>
         </div>
         <div style="display: flex; gap: 10px;">
-          <!-- NEW AI COMBINE BUTTON -->
-          <button class="btn" id="combine-ai-btn" style="outline: none;">✨ Combine (AI)</button>
+          <!-- AI COMBINE BUTTON -->
+          <button class="btn" id="combine-ai-btn" style="outline: none;">Combine (AI)</button>
           <button class="btn" id="new-folder-btn" style="outline: none;">+ New Folder</button>
         </div>
       </div>
@@ -456,7 +457,7 @@
       </div>
 
       <div id="shortcut-popup">
-        <span>💡 <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span> to Editor | Use <span class="kbd-badge">⬆</span> <span class="kbd-badge">⬇</span> <span class="kbd-badge">⬅</span> <span class="kbd-badge">➡</span> to navigate</span>
+        <span>💡 <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span> to Editor | <span class="kbd-badge">Esc</span> to Delete | Use <span class="kbd-badge">⬆</span> <span class="kbd-badge">⬇</span> <span class="kbd-badge">⬅</span> <span class="kbd-badge">➡</span> to navigate</span>
       </div>
     </div>
   </div>
@@ -562,7 +563,9 @@
       document.getElementById('ai-combine-overlay').classList.remove('active');
       document.getElementById('combine-instructions').blur();
       document.getElementById('combine-new-name').blur();
-      document.body.focus(); // Prevents arrow key bug
+      
+      // Force page body to reclaim focus for immediate global arrow key control
+      setTimeout(() => document.body.focus(), 10);
     }
 
     function extractTextFromFolder(folder) {
@@ -641,7 +644,6 @@
           const data = await response.json();
           const aiResponseText = data.choices[0].message.content.trim();
           
-          // Find or create an "AI Combinations" folder at the root level
           let comboFolder = projects.find(p => p.name === 'AI Combinations');
           if (!comboFolder) {
               comboFolder = { name: 'AI Combinations', files: [], folders: [] };
@@ -658,7 +660,6 @@
           renderFolders();
           closeCombineModal();
           
-          // Re-highlight the new addition logic to prevent bug 
           setTimeout(() => { showPopupNotification("✅ Saved successfully to 'AI Combinations' folder!"); }, 100);
           
       } catch(e) {
@@ -670,7 +671,6 @@
           executeBtn.textContent = '✨ Generate';
       }
     }
-
 
     // ==========================================
     // CUSTOM MODALS LOGIC
@@ -693,7 +693,10 @@
     function closeCustomPrompt(value) {
       document.getElementById('custom-prompt-overlay').classList.remove('active');
       document.getElementById('custom-prompt-input').blur();
-      document.body.focus();
+      
+      // Force page body to reclaim focus for immediate global arrow key control
+      setTimeout(() => document.body.focus(), 10);
+      
       if (promptResolver) {
         promptResolver(value);
         promptResolver = null;
@@ -721,7 +724,10 @@
 
     function closeCustomConfirm(result) {
       document.getElementById('custom-confirm-overlay').classList.remove('active');
-      document.body.focus();
+      
+      // Force page body to reclaim focus for immediate global arrow key control
+      setTimeout(() => document.body.focus(), 10);
+      
       if (confirmResolver) {
         confirmResolver(result);
         confirmResolver = null;
@@ -756,7 +762,12 @@
       shortcutPopup.classList.add('show');
       setTimeout(() => { shortcutPopup.classList.remove('show'); }, 4500);
     }
-    window.addEventListener('DOMContentLoaded', () => showPopupNotification());
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      showPopupNotification();
+      // Ensure the body has initial focus for global arrow shortcuts
+      setTimeout(() => document.body.focus(), 10);
+    });
 
     function saveProjects() {
       localStorage.setItem('snapnote_projects', JSON.stringify(projects));
@@ -1007,34 +1018,55 @@
           return;
         }
         
-        // Grab all inputs, selects, and buttons inside the modal
+        // Grab all focusable fields inside the modal
         const focusables = Array.from(document.querySelectorAll('#ai-combine-overlay select, #ai-combine-overlay input, #ai-combine-overlay button:not([disabled])'));
         let idx = focusables.indexOf(document.activeElement);
         if (idx === -1) idx = 0;
         
-        // Use Up/Down arrows to move focus between fields
         if (e.key === 'ArrowDown' && !e.altKey) {
+          // If on a select, allow native Up/Down behavior so you can scroll the options list
+          if (document.activeElement.tagName === 'SELECT') return;
           e.preventDefault();
           focusables[(idx + 1) % focusables.length].focus();
           return;
         } else if (e.key === 'ArrowUp' && !e.altKey) {
+          if (document.activeElement.tagName === 'SELECT') return; 
           e.preventDefault();
           focusables[(idx - 1 + focusables.length) % focusables.length].focus();
           return;
         } else if (e.key === 'Enter') {
-          // If focused on an input/select, Enter triggers generation. If on a button, it naturally clicks it.
-          if (document.activeElement.tagName !== 'BUTTON') {
+          // On Enter inside a select, move to the next field natively
+          if (document.activeElement.tagName === 'SELECT') {
+            e.preventDefault();
+            focusables[(idx + 1) % focusables.length].focus();
+          } else if (document.activeElement.tagName !== 'BUTTON') {
             e.preventDefault();
             executeCombine();
           }
           return; 
         }
-        return; // Stop global navigation while modal is active
+        return; // Halt global shortcuts while Combine modal is open
       }
 
       // Disable global shortcuts if other modals are open
       if (document.getElementById('custom-prompt-overlay').classList.contains('active') ||
           document.getElementById('custom-confirm-overlay').classList.contains('active')) {
+        return;
+      }
+
+      // --- Fast delete shortcut via Escape key ---
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        const item = navItems[focusedIndex];
+        if (item) {
+          if (item.type === 'folder') {
+            deleteFolder(item.path);
+          } else if (item.type === 'note') {
+            // Re-use the existing click logic inside the note row to guarantee perfect deletion
+            const delBtn = item.el.querySelector('.action-btn');
+            if (delBtn) delBtn.click();
+          }
+        }
         return;
       }
 
