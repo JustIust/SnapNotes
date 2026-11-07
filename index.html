@@ -338,6 +338,34 @@
       margin: 4px 0;
     }
 
+    /* AI PROMPT OVERLAY */
+    #ai-prompt-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    #ai-prompt-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .ai-prompt-box {
+      background: rgba(24, 21, 19, 0.95); border: 1px solid rgba(224, 170, 94, 0.3);
+      border-radius: 16px; width: 90%; max-width: 500px; padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 40px rgba(224, 170, 94, 0.1);
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #ai-prompt-overlay.active .ai-prompt-box { transform: translateY(0) scale(1); }
+    
+    .ai-header { display: flex; align-items: center; gap: 10px; color: #e0aa5e; font-family: Georgia, serif; font-size: 1.3rem; }
+    .ai-header svg { width: 22px; height: 22px; }
+    
+    .ai-prompt-box input {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px; padding: 14px; color: #f7f3ec;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; outline: none; width: 100%;
+    }
+    .ai-prompt-box input:focus { border-color: rgba(224, 170, 94, 0.5); }
+    .ai-loading-text { font-size: 0.85rem; color: rgba(224, 170, 94, 0.8); display: none; font-style: italic; }
+
     #save-modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
       display: flex; justify-content: center; align-items: center;
@@ -425,6 +453,20 @@
     <div class="menu-divider"></div>
     <div class="menu-item" id="ctx-select-all">☑️ Select All <kbd>Ctrl+A</kbd></div>
     <div class="menu-item ai-item" id="ctx-ask-ai">✨ Ask AI</div>
+  </div>
+
+  <!-- AI PROMPT OVERLAY -->
+  <div id="ai-prompt-overlay">
+    <div class="ai-prompt-box">
+      <div class="ai-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        <span>AI Agent (Structured Style)</span>
+      </div>
+      <input type="text" id="ai-input" placeholder="Organize notes, answer questions, or rewrite text... (Press Enter)" autocomplete="off">
+      <div class="ai-loading-text" id="ai-loading">Thinking with Groq...</div>
+    </div>
   </div>
 
   <div id="save-modal-overlay">
@@ -612,6 +654,7 @@
     
     let savedSelectionRange = null;
     let savedSelectedText = ''; 
+    let lastKeyTyped = '';
 
     // --- CONTEXT MENU LOGIC ---
     noteBody.addEventListener('contextmenu', (e) => {
@@ -685,22 +728,25 @@
       contextMenu.classList.remove('show');
     });
 
-    // Context Menu AI Trigger (Native Prompt)
+    // Context Menu AI Trigger (Opens UI Modal)
     document.getElementById('ctx-ask-ai').addEventListener('click', () => {
       contextMenu.classList.remove('show');
       if (savedSelectionRange) {
         savedSelectionRange.collapse(false);
       }
       
-      const userPrompt = prompt("✨ Ask AI about the selected text:", "Summarize or organize this...");
-      if (userPrompt && userPrompt.trim() !== '') {
-        generateGroqAIResponse(userPrompt.trim());
-      }
+      const aiOverlay = document.getElementById('ai-prompt-overlay');
+      const aiInput = document.getElementById('ai-input');
+      
+      aiOverlay.classList.add('active');
+      aiInput.value = '';
+      aiInput.focus();
+      showPopupNotification("✨ Groq AI Agent activated");
     });
 
 
     // --- INLINE AI LOGIC (./command) ---
-    const GROQ_API_KEY = '';//paste the Groq API key from the README
+    const GROQ_API_KEY = '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';//paste the Groq API key from the README
     const GROQ_MODEL = 'openai/gpt-oss-120b'; 
 
     noteBody.addEventListener('keydown', (e) => {
@@ -789,6 +835,22 @@
       }
     });
 
+    // AI Modal Input Handler
+    document.getElementById('ai-input').addEventListener('keydown', (e) => {
+      const aiOverlay = document.getElementById('ai-prompt-overlay');
+      const aiInput = document.getElementById('ai-input');
+
+      if (e.key === 'Escape') {
+        aiOverlay.classList.remove('active');
+        savedSelectedText = ''; // Reset selection memory
+        restoreCursor();
+      }
+      
+      if (e.key === 'Enter' && aiInput.value.trim() !== '') {
+        generateGroqAIResponse(aiInput.value.trim());
+      }
+    });
+
     function restoreCursor() {
       if (savedSelectionRange) {
         const selection = window.getSelection();
@@ -800,7 +862,13 @@
 
     // --- GROQ API INTEGRATION ---
     async function generateGroqAIResponse(promptText) {
-      showPopupNotification('⏳ Thinking with Groq...');
+      const aiInput = document.getElementById('ai-input');
+      const aiLoading = document.getElementById('ai-loading');
+      const aiOverlay = document.getElementById('ai-prompt-overlay');
+
+      aiInput.disabled = true;
+      aiLoading.style.display = 'block';
+      aiLoading.textContent = 'Thinking with Groq...';
       
       try {
         const contextText = savedSelectedText ? savedSelectedText : noteBody.innerText.trim();
@@ -871,7 +939,12 @@ Formatting Rules:
         console.error("Groq fetch error details:", error);
         showPopupNotification("❌ Network error. Check your connection.");
       } finally {
+        aiInput.disabled = false;
+        aiLoading.style.display = 'none';
+        aiOverlay.classList.remove('active');
+        
         savedSelectedText = ''; 
+        
         saveAllTabsToStorage();
         updateStats();
       }
@@ -1049,6 +1122,9 @@ Formatting Rules:
     }
 
     document.addEventListener('keydown', (e) => {
+      const aiOverlay = document.getElementById('ai-prompt-overlay');
+      if (aiOverlay.classList.contains('active')) return;
+
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's')) {
         e.preventDefault();
         openSaveModal();
