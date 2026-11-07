@@ -29,7 +29,7 @@
       position: relative;
       overflow-x: hidden;
     }
-    body:focus { outline: none; } /* Prevents ugly focus rings when programmatically focused */
+    body:focus { outline: none; } 
 
     body::before {
       content: "";
@@ -285,6 +285,59 @@
       color: #e0aa5e;
     }
 
+    /* Context Menu Styles */
+    #custom-context-menu {
+      position: absolute;
+      display: none;
+      background: rgba(24, 21, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 6px;
+      min-width: 180px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(224, 170, 94, 0.05);
+      backdrop-filter: blur(12px);
+      z-index: 9999;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.85rem;
+      color: #ded8ce;
+      user-select: none;
+    }
+    #custom-context-menu.show {
+      display: flex;
+      flex-direction: column;
+    }
+    .menu-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f7f3ec;
+    }
+    .menu-item kbd {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      font-family: monospace;
+    }
+    .menu-item.ai-item {
+      color: #e0aa5e;
+      font-weight: 600;
+    }
+    .menu-item.ai-item:hover {
+      background: rgba(224, 170, 94, 0.15);
+    }
+    .menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 0;
+    }
+
     #save-modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
       display: flex; justify-content: center; align-items: center;
@@ -314,53 +367,6 @@
     .btn-create:hover { background: rgba(224, 170, 94, 0.25); }
     .close-modal-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: rgba(255, 255, 255, 0.4); font-size: 1.2rem; cursor: pointer; }
     .close-modal-btn:hover { color: #fff; }
-
-    #ai-prompt-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
-      display: flex; justify-content: center; align-items: center;
-      z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
-    }
-    #ai-prompt-overlay.active { opacity: 1; pointer-events: auto; }
-    
-    .ai-prompt-box {
-      background: rgba(24, 21, 19, 0.95); border: 1px solid rgba(224, 170, 94, 0.3);
-      border-radius: 16px; width: 90%; max-width: 500px; padding: 24px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 40px rgba(224, 170, 94, 0.1);
-      display: flex; flex-direction: column; gap: 16px;
-      transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    #ai-prompt-overlay.active .ai-prompt-box { transform: translateY(0) scale(1); }
-    
-    .ai-header { display: flex; align-items: center; gap: 10px; color: #e0aa5e; font-family: Georgia, serif; font-size: 1.3rem; }
-    .ai-header svg { width: 22px; height: 22px; }
-    
-    .ai-prompt-box input {
-      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px; padding: 14px; color: #f7f3ec;
-      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; outline: none; width: 100%;
-    }
-    .ai-prompt-box input:focus { border-color: rgba(224, 170, 94, 0.5); }
-    .ai-loading-text { font-size: 0.85rem; color: rgba(224, 170, 94, 0.8); display: none; font-style: italic; }
-
-    #floating-ai-btn {
-      position: absolute;
-      display: none;
-      background: rgba(24, 21, 19, 0.95);
-      border: 1px solid rgba(224, 170, 94, 0.4);
-      color: #e0aa5e;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
-      transition: background 0.2s ease;
-    }
-    #floating-ai-btn:hover {
-      background: rgba(224, 170, 94, 0.15);
-    }
   </style>
 </head>
 <body tabindex="-1">
@@ -396,7 +402,7 @@
       </div>
 
       <div class="note-title" contenteditable="true" data-placeholder="Note Title..." spellcheck="true"></div>
-      <div class="note-body" contenteditable="true" data-placeholder="Type './' for AI agent" spellcheck="true"></div>
+      <div class="note-body" contenteditable="true" data-placeholder="Type './[prompt]' and press Enter for AI" spellcheck="true"></div>
 
       <div id="shortcut-popup">
         <span>💡 Save: <span class="kbd-badge">Ctrl</span>+<span class="kbd-badge">S</span> | Switch: <span class="kbd-badge">Alt</span>+<span class="kbd-badge">W</span> | Close: <span class="kbd-badge">Esc</span></span>
@@ -408,20 +414,17 @@
     <span id="word-count">0 words</span>
   </div>
 
-  <!-- FLOATING AI BUTTON -->
-  <button id="floating-ai-btn" onmousedown="event.preventDefault()">✨ Ask AI</button>
-
-  <div id="ai-prompt-overlay">
-    <div class="ai-prompt-box">
-      <div class="ai-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-        </svg>
-        <span>AI Agent (Structured Style)</span>
-      </div>
-      <input type="text" id="ai-input" placeholder="Organize notes, answer questions, or rewrite text... (Press Enter)" autocomplete="off">
-      <div class="ai-loading-text" id="ai-loading">Thinking with Groq...</div>
-    </div>
+  <!-- CUSTOM CONTEXT MENU -->
+  <div id="custom-context-menu" onmousedown="event.preventDefault()">
+    <div class="menu-item" id="ctx-bold"><b>B</b> Bold <kbd>Ctrl+B</kbd></div>
+    <div class="menu-item" id="ctx-italic"><i>I</i> Italic <kbd>Ctrl+I</kbd></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" id="ctx-cut">✂️ Cut <kbd>Ctrl+X</kbd></div>
+    <div class="menu-item" id="ctx-copy">📋 Copy <kbd>Ctrl+C</kbd></div>
+    <div class="menu-item" id="ctx-paste">📝 Paste <kbd>Ctrl+V</kbd></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" id="ctx-select-all">☑️ Select All <kbd>Ctrl+A</kbd></div>
+    <div class="menu-item ai-item" id="ctx-ask-ai">✨ Ask AI</div>
   </div>
 
   <div id="save-modal-overlay">
@@ -448,6 +451,7 @@
     const noteBody = document.querySelector('.note-body');
     const shortcutPopup = document.getElementById('shortcut-popup');
     const saveModalOverlay = document.getElementById('save-modal-overlay');
+    const contextMenu = document.getElementById('custom-context-menu');
 
     let tabs = [];
     let activeTabId = null;
@@ -464,7 +468,7 @@
       const tab = tabs.find(t => t.id === activeTabId);
       if (tab) {
         tab.title = noteTitle.innerText.trim() || 'Untitled Note';
-        tab.body = noteBody.innerText;
+        tab.body = noteBody.innerHTML;
       }
     }
 
@@ -480,12 +484,20 @@
         if (tab.fileId) {
           function updateFileInFolders(folderArray) {
             for (let f of folderArray) {
-              let file = f.files.find(fi => fi.id === tab.fileId);
-              if (file) {
-                file.title = tab.title;
-                file.content = tab.body;
+              if (f.id === tab.fileId) { 
+                f.title = tab.title;
+                f.content = tab.body;
                 updatedProjects = true;
                 return true;
+              }
+              if (f.files) {
+                let file = f.files.find(fi => fi.id === tab.fileId);
+                if (file) {
+                  file.title = tab.title;
+                  file.content = tab.body;
+                  updatedProjects = true;
+                  return true;
+                }
               }
               if (f.folders && updateFileInFolders(f.folders)) return true;
             }
@@ -540,7 +552,7 @@
 
       if (currentTab) {
         noteTitle.innerText = currentTab.title === 'Untitled Note' ? '' : currentTab.title;
-        noteBody.innerText = currentTab.body || '';
+        noteBody.innerHTML = currentTab.body || '';
         updateStats();
       }
     }
@@ -581,7 +593,7 @@
       const currentTab = tabs.find(t => t.id === activeTabId);
       if (currentTab) {
         currentTab.title = titleText || 'Untitled Note';
-        currentTab.body = noteBody.innerText;
+        currentTab.body = noteBody.innerHTML;
         const tabTitleEl = document.querySelector(`.chrome-tab[data-id="${activeTabId}"] .chrome-tab-title`);
         if (tabTitleEl) tabTitleEl.textContent = currentTab.title;
       }
@@ -595,78 +607,104 @@
     noteTitle.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
     noteBody.addEventListener('input', () => { updateStats(); saveAllTabsToStorage(); });
 
-    const GROQ_API_KEY = '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';//paste the Groq API key from the README
-    const GROQ_MODEL = 'openai/gpt-oss-120b'; 
 
-    const aiOverlay = document.getElementById('ai-prompt-overlay');
-    const aiInput = document.getElementById('ai-input');
-    const aiLoading = document.getElementById('ai-loading');
+    // --- AI AND SELECTION LOGIC ---
     
-    let lastKeyTyped = '';
     let savedSelectionRange = null;
+    let savedSelectedText = ''; 
 
-    const floatingAiBtn = document.getElementById('floating-ai-btn');
+    // --- CONTEXT MENU LOGIC ---
+    noteBody.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
 
-    // Show button when text is highlighted
-    noteBody.addEventListener('mouseup', () => {
-      setTimeout(() => {
-        const selection = window.getSelection();
-        if (!selection.isCollapsed && selection.toString().trim().length > 0) {
-          const range = selection.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          
-          floatingAiBtn.style.display = 'block';
-          // Position it perfectly centered above the highlighted text
-          floatingAiBtn.style.top = `${rect.top + window.scrollY - 38}px`;
-          floatingAiBtn.style.left = `${rect.left + window.scrollX + (rect.width / 2) - (floatingAiBtn.offsetWidth / 2)}px`;
-        } else {
-          floatingAiBtn.style.display = 'none';
-        }
-      }, 10); 
-    });
+      let mouseX = e.clientX;
+      let mouseY = e.clientY;
 
-    // Hide button if you click anywhere else
-    document.addEventListener('mousedown', (e) => {
-      if (e.target !== floatingAiBtn) {
-        floatingAiBtn.style.display = 'none';
+      const menuWidth = 180;
+      const menuHeight = 250;
+      if (mouseX + menuWidth > window.innerWidth) mouseX = window.innerWidth - menuWidth - 10;
+      if (mouseY + menuHeight > window.innerHeight) mouseY = window.innerHeight - menuHeight - 10;
+
+      contextMenu.style.top = `${mouseY + window.scrollY}px`;
+      contextMenu.style.left = `${mouseX + window.scrollX}px`;
+      contextMenu.classList.add('show');
+
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0 && !selection.isCollapsed) {
+        savedSelectedText = selection.toString().trim();
+        savedSelectionRange = selection.getRangeAt(0).cloneRange();
+      } else {
+        savedSelectedText = '';
       }
     });
 
-    // Trigger AI when the floating button is clicked
-    floatingAiBtn.addEventListener('click', () => {
-      const selection = window.getSelection();
-      if (selection.rangeCount > 0) {
-        savedSelectionRange = selection.getRangeAt(0).cloneRange();
-        // Collapse to the end so the AI response inserts *after* your selected text instead of deleting it
+    document.addEventListener('click', (e) => {
+      if (!contextMenu.contains(e.target)) {
+        contextMenu.classList.remove('show');
+      }
+    });
+
+    document.getElementById('ctx-bold').addEventListener('click', () => {
+      document.execCommand('bold');
+      contextMenu.classList.remove('show');
+      updateStats(); saveAllTabsToStorage();
+    });
+
+    document.getElementById('ctx-italic').addEventListener('click', () => {
+      document.execCommand('italic');
+      contextMenu.classList.remove('show');
+      updateStats(); saveAllTabsToStorage();
+    });
+
+    document.getElementById('ctx-cut').addEventListener('click', () => {
+      document.execCommand('cut');
+      contextMenu.classList.remove('show');
+      updateStats(); saveAllTabsToStorage();
+    });
+
+    document.getElementById('ctx-copy').addEventListener('click', () => {
+      document.execCommand('copy');
+      contextMenu.classList.remove('show');
+    });
+
+    document.getElementById('ctx-paste').addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.execCommand('insertText', false, text);
+      } catch (err) {
+        console.error('Failed to read clipboard contents: ', err);
+        showPopupNotification('❌ Paste restricted by browser. Use Ctrl+V.');
+      }
+      contextMenu.classList.remove('show');
+      updateStats(); saveAllTabsToStorage();
+    });
+
+    document.getElementById('ctx-select-all').addEventListener('click', () => {
+      noteBody.focus();
+      document.execCommand('selectAll');
+      contextMenu.classList.remove('show');
+    });
+
+    // Context Menu AI Trigger (Native Prompt)
+    document.getElementById('ctx-ask-ai').addEventListener('click', () => {
+      contextMenu.classList.remove('show');
+      if (savedSelectionRange) {
         savedSelectionRange.collapse(false);
       }
       
-      floatingAiBtn.style.display = 'none';
-      aiOverlay.classList.add('active');
-      aiInput.value = '';
-      aiInput.focus();
-      showPopupNotification("✨ Groq AI Agent activated");
+      const userPrompt = prompt("✨ Ask AI about the selected text:", "Summarize or organize this...");
+      if (userPrompt && userPrompt.trim() !== '') {
+        generateGroqAIResponse(userPrompt.trim());
+      }
     });
 
+
+    // --- INLINE AI LOGIC (./command) ---
+    const GROQ_API_KEY = '';//paste the Groq API key from the README
+    const GROQ_MODEL = 'openai/gpt-oss-120b'; 
+
     noteBody.addEventListener('keydown', (e) => {
-      if (e.key === '/' && lastKeyTyped === '.') {
-        e.preventDefault(); 
-        
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-          savedSelectionRange = selection.getRangeAt(0).cloneRange();
-          savedSelectionRange.setStart(savedSelectionRange.startContainer, Math.max(0, savedSelectionRange.startOffset - 1));
-          savedSelectionRange.deleteContents();
-        }
-
-        aiOverlay.classList.add('active');
-        aiInput.value = '';
-        aiInput.focus();
-        showPopupNotification("✨ Groq AI Agent activated");
-      }
-      
-      lastKeyTyped = e.key;
-
+      // 1) Handle generic editor navigation
       if (e.key === 'ArrowUp') {
         const sel = window.getSelection();
         let isAtTop = false;
@@ -691,6 +729,47 @@
           sel.addRange(range);
         }
       }
+
+      // 2) Catch Enter key to check for "./command" inline execution
+      if (e.key === 'Enter') {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0 && selection.isCollapsed) {
+          const range = selection.getRangeAt(0);
+          const node = range.startContainer;
+          
+          let textNode = node;
+          let offset = range.startOffset;
+          
+          // Drill down if it's an element node mapping to the caret position
+          if (node.nodeType === Node.ELEMENT_NODE && offset > 0) {
+            if (node.childNodes[offset - 1].nodeType === Node.TEXT_NODE) {
+              textNode = node.childNodes[offset - 1];
+              offset = textNode.textContent.length;
+            }
+          }
+          
+          if (textNode.nodeType === Node.TEXT_NODE) {
+            const textBeforeCursor = textNode.textContent.slice(0, offset);
+            // Look for ./ followed by words right before the cursor
+            const match = textBeforeCursor.match(/\.\/([a-zA-Z0-9_\- ]+)$/);
+            
+            if (match) {
+              e.preventDefault(); // Stop standard enter key action
+              const command = match[1].trim();
+              
+              savedSelectedText = ''; // Ensure we're reading the whole document context since it's an inline command
+              
+              // Delete the "./command" text from the editor
+              const deleteRange = document.createRange();
+              deleteRange.setStart(textNode, offset - match[0].length);
+              deleteRange.setEnd(textNode, offset);
+              deleteRange.deleteContents();
+              
+              generateGroqAIResponse(command);
+            }
+          }
+        }
+      }
     });
 
     noteTitle.addEventListener('keydown', (e) => {
@@ -710,17 +789,6 @@
       }
     });
 
-    aiInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        aiOverlay.classList.remove('active');
-        restoreCursor();
-      }
-      
-      if (e.key === 'Enter' && aiInput.value.trim() !== '') {
-        generateGroqAIResponse(aiInput.value.trim());
-      }
-    });
-
     function restoreCursor() {
       if (savedSelectionRange) {
         const selection = window.getSelection();
@@ -730,13 +798,13 @@
       noteBody.focus();
     }
 
-    async function generateGroqAIResponse(prompt) {
-      aiInput.disabled = true;
-      aiLoading.style.display = 'block';
-      aiLoading.textContent = 'Thinking with Groq...';
+    // --- GROQ API INTEGRATION ---
+    async function generateGroqAIResponse(promptText) {
+      showPopupNotification('⏳ Thinking with Groq...');
       
       try {
-        const currentText = noteBody.innerText.trim();
+        const contextText = savedSelectedText ? savedSelectedText : noteBody.innerText.trim();
+        const textLabel = savedSelectedText ? "Selected Text" : "Current Document Text";
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -761,7 +829,7 @@ Formatting Rules:
               },
               {
                 role: "user",
-                content: `Current Document Text: "${currentText}"\n\nUser Request: ${prompt}`
+                content: `${textLabel}: "${contextText}"\n\nUser Request: ${promptText}`
               }
             ],
             max_tokens: 350,
@@ -782,7 +850,7 @@ Formatting Rules:
           let aiResponseText = data.choices[0].message.content.trim();
           
           let labelText = "AI Generated Content";
-          const lowerPrompt = prompt.toLowerCase();
+          const lowerPrompt = promptText.toLowerCase();
           if (lowerPrompt.includes("sumar") || lowerPrompt.includes("summarize") || lowerPrompt.includes("rezumat")) {
             labelText = "AI Generated Summary";
           } else if (lowerPrompt.includes("research") || lowerPrompt.includes("cercetare") || lowerPrompt.includes("site")) {
@@ -803,9 +871,7 @@ Formatting Rules:
         console.error("Groq fetch error details:", error);
         showPopupNotification("❌ Network error. Check your connection.");
       } finally {
-        aiInput.disabled = false;
-        aiLoading.style.display = 'none';
-        aiOverlay.classList.remove('active');
+        savedSelectedText = ''; 
         saveAllTabsToStorage();
         updateStats();
       }
@@ -983,8 +1049,6 @@ Formatting Rules:
     }
 
     document.addEventListener('keydown', (e) => {
-      if (aiOverlay.classList.contains('active')) return;
-
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's')) {
         e.preventDefault();
         openSaveModal();
@@ -1029,8 +1093,7 @@ Formatting Rules:
         return;
       }
       
-      // Close active note on Escape
-      if (e.key === 'Escape' && activeTabId && !saveModalOverlay.classList.contains('active') && !aiOverlay.classList.contains('active')) {
+      if (e.key === 'Escape' && activeTabId && !saveModalOverlay.classList.contains('active')) {
           closeTab(activeTabId);
           return;
       }
@@ -1041,7 +1104,6 @@ Formatting Rules:
       let projects = JSON.parse(localStorage.getItem('snapnote_projects')) || [];
       tabs = JSON.parse(localStorage.getItem('snapnote_tabs')) || [];
 
-      // Ensure the body has initial focus for global arrow shortcuts
       setTimeout(() => document.body.focus(), 10);
 
       if (openFileId) {
